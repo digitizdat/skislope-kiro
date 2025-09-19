@@ -51,6 +51,8 @@ class TestError:
     suggested_fix: Optional[str] = None
     timestamp: datetime = field(default_factory=datetime.now)
     stack_trace: Optional[str] = None
+    error_type: Optional[str] = None
+    recovery_strategy: Optional[str] = None
     
     @classmethod
     def from_exception(cls, exc: Exception, category: str, severity: Severity = Severity.HIGH) -> 'TestError':
@@ -62,6 +64,20 @@ class TestError:
             stack_trace=traceback.format_exc(),
             context={"exception_type": type(exc).__name__}
         )
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            "category": self.category,
+            "severity": self.severity.value,
+            "message": self.message,
+            "context": self.context,
+            "suggested_fix": self.suggested_fix,
+            "timestamp": self.timestamp.isoformat(),
+            "stack_trace": self.stack_trace,
+            "error_type": self.error_type,
+            "recovery_strategy": self.recovery_strategy
+        }
 
 
 @dataclass
