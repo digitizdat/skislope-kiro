@@ -1,153 +1,276 @@
-#!/usr/bin/env python3
 """
-Example usage of the integration testing infrastructure.
+WorkflowSimulator Usage Examples
 
-This script demonstrates how to use the core testing components
-for setting up and running integration tests.
+This module provides comprehensive examples of how to use the WorkflowSimulator
+for end-to-end testing in the Alpine Ski Slope Environment Viewer project.
+
+The WorkflowSimulator enables testing of complete user workflows including:
+- Terrain loading from ski area selection to cached data
+- Cache integration with offline mode functionality  
+- Error scenarios and graceful degradation testing
+- Performance validation and monitoring
+
+Examples are organized into several categories:
+- basic_usage.py: Fundamental usage patterns
+- advanced_usage.py: Advanced mocking and error injection
+- real_world_scenarios.py: Realistic user interaction patterns
+- integration_patterns.py: CI/CD and monitoring integration
+
+Quick Start:
+    from agents.tests.integration.workflow_simulator import WorkflowSimulator, WorkflowType
+    from agents.tests.integration.config import get_test_config
+    from unittest.mock import Mock
+    
+    config = get_test_config()
+    agent_manager = Mock()
+    agent_manager.is_agent_healthy.return_value = True
+    
+    async with WorkflowSimulator(config, agent_manager) as simulator:
+        result = await simulator.simulate_workflow(WorkflowType.TERRAIN_LOADING)
+        print(f"Status: {'✅' if result.success else '❌'}")
 """
 
 import asyncio
-import json
-from pathlib import Path
+from unittest.mock import Mock
 
-from .config import get_test_config, TestEnvironment
-from .models import TestResult, TestCategory, TestStatus, TestResults, Severity
-from .logging_utils import TestLogger, DiagnosticCollector, integration_test_context
+from .workflow_simulator import WorkflowSimulator, WorkflowType, MockTerrainData
+from .config import get_test_config
+from .logging_utils import TestLogger
 
 
-async def example_basic_usage():
-    """Example of basic infrastructure usage."""
-    print("=== Integration Testing Infrastructure Example ===\n")
+async def quick_start_example():
+    """
+    Quick start example showing basic WorkflowSimulator usage.
     
-    # 1. Get configuration
-    print("1. Setting up configuration...")
+    This is the minimal example to get started with workflow simulation.
+    """
+    print("🚀 WorkflowSimulator Quick Start")
+    print("=" * 40)
+    
+    # Basic setup
     config = get_test_config()
-    print(f"   Environment: {config.environment.value}")
-    print(f"   Log level: {config.log_level.value}")
-    print(f"   Parallel execution: {config.parallel_execution}")
-    print(f"   Max workers: {config.max_workers}")
-    print()
+    agent_manager = Mock()
+    agent_manager.is_agent_healthy.return_value = True
     
-    # 2. Create logger
-    print("2. Setting up logging...")
-    logger = TestLogger("example", config)
-    logger.info("Integration testing infrastructure initialized")
-    logger.debug("Debug logging is working", component="example")
-    print()
-    
-    # 3. Collect diagnostics
-    print("3. Collecting system diagnostics...")
-    collector = DiagnosticCollector(config)
-    diagnostics = collector.collect_all_diagnostics()
-    
-    print(f"   Platform: {diagnostics['system']['platform']}")
-    print(f"   Python version: {diagnostics['system']['python_version'][:20]}...")
-    print(f"   Memory available: {diagnostics['system']['memory']['available'] / (1024**3):.1f} GB")
-    print(f"   CPU count: {diagnostics['system']['cpu']['count']}")
-    print()
-    
-    # 4. Create test results
-    print("4. Creating test results...")
-    results = TestResults()
-    
-    # Add some example test results
-    test1 = TestResult("api_contract_test", TestCategory.API_CONTRACTS, TestStatus.NOT_STARTED, 0.0)
-    test1.mark_passed("All API contracts validated successfully")
-    
-    test2 = TestResult("communication_test", TestCategory.COMMUNICATION, TestStatus.NOT_STARTED, 0.0)
-    test2.mark_failed("CORS configuration failed", "Network timeout occurred")
-    
-    test3 = TestResult("environment_test", TestCategory.ENVIRONMENT, TestStatus.NOT_STARTED, 0.0)
-    test3.mark_skipped("SSL validation disabled in test environment")
-    
-    results.add_result(test1)
-    results.add_result(test2)
-    results.add_result(test3)
-    results.finalize()
-    
-    print(f"   Total tests: {results.summary.total_tests}")
-    print(f"   Passed: {results.summary.passed}")
-    print(f"   Failed: {results.summary.failed}")
-    print(f"   Skipped: {results.summary.skipped}")
-    print(f"   Success rate: {results.summary.success_rate:.1f}%")
-    print()
-    
-    # 5. Use context manager
-    print("5. Using test context manager...")
-    with integration_test_context("example_test", config, test_id="example_001") as ctx_logger:
-        ctx_logger.info("Running example test within context")
-        ctx_logger.debug("Context includes test_id", test_id="example_001")
+    # Run a single workflow
+    async with WorkflowSimulator(config, agent_manager) as simulator:
+        result = await simulator.simulate_workflow(WorkflowType.TERRAIN_LOADING)
         
-        # Simulate some work
-        await asyncio.sleep(0.1)
+        print(f"Workflow: {result.workflow_type.value}")
+        print(f"Status: {'✅ Success' if result.success else '❌ Failed'}")
+        print(f"Duration: {result.duration:.3f}s")
+        print(f"Steps: {result.steps_completed}/{result.steps_total}")
         
-        ctx_logger.info("Example test completed successfully")
-    print()
-    
-    # 6. Save results
-    print("6. Saving test artifacts...")
-    if config.env_config.temp_dir:
-        results_file = config.env_config.temp_dir / "example_results.json"
-        with open(results_file, 'w') as f:
-            json.dump(results.to_dict(), f, indent=2)
-        print(f"   Results saved to: {results_file}")
-        
-        diagnostics_file = collector.save_diagnostics()
-        print(f"   Diagnostics saved to: {diagnostics_file}")
-    print()
-    
-    print("=== Example completed successfully ===")
+        if result.error:
+            print(f"Error: {result.error.message}")
 
 
-def example_configuration_overrides():
-    """Example of using configuration overrides."""
-    print("=== Configuration Overrides Example ===\n")
+async def all_workflows_example():
+    """
+    Example showing how to run all available workflows.
     
-    # Override specific settings
-    overrides = {
-        "max_workers": 2,
-        "timeouts.agent_startup": 45,
-        "log_level": "INFO",
-        "reporting.detail_level": "verbose"
+    This demonstrates batch execution and result analysis.
+    """
+    print("🔄 All Workflows Example")
+    print("=" * 30)
+    
+    config = get_test_config()
+    agent_manager = Mock()
+    agent_manager.is_agent_healthy.return_value = True
+    
+    async with WorkflowSimulator(config, agent_manager) as simulator:
+        print("Available workflows:")
+        for workflow_type in WorkflowType:
+            steps = simulator.workflows[workflow_type]
+            print(f"  • {workflow_type.value.replace('_', ' ').title()}: {len(steps)} steps")
+        
+        print("\nExecuting all workflows...")
+        results = await simulator.simulate_all_workflows()
+        
+        print("\nResults:")
+        successful = 0
+        for workflow_type, result in results.items():
+            status = "✅" if result.success else "❌"
+            print(f"  {status} {workflow_type.value}: {result.duration:.3f}s")
+            if result.success:
+                successful += 1
+        
+        print(f"\nSummary: {successful}/{len(results)} workflows successful")
+
+
+async def mock_data_example():
+    """
+    Example showing MockTerrainData usage.
+    
+    This demonstrates how to generate realistic test data.
+    """
+    print("🏔️  Mock Data Generation Example")
+    print("=" * 40)
+    
+    # Generate terrain data for different scenarios
+    scenarios = [
+        ("Small Area", "chamonix", (32, 32)),
+        ("Medium Area", "whistler", (64, 64)),
+        ("Large Area", "zermatt", (128, 128))
+    ]
+    
+    for scenario_name, ski_area, grid_size in scenarios:
+        mock_data = MockTerrainData.create_sample(ski_area, grid_size)
+        
+        print(f"\n{scenario_name}:")
+        print(f"  Ski Area: {mock_data.ski_area}")
+        print(f"  Grid Size: {mock_data.grid_size}")
+        print(f"  Data Points: {len(mock_data.elevation_data) * len(mock_data.elevation_data[0]):,}")
+        print(f"  Elevation Range: {mock_data.metadata['min_elevation']:.0f}m - {mock_data.metadata['max_elevation']:.0f}m")
+        
+        # Validate data structure
+        all_elevations = [elev for row in mock_data.elevation_data for elev in row]
+        is_valid = (
+            len(mock_data.elevation_data) == grid_size[0] and
+            len(mock_data.elevation_data[0]) == grid_size[1] and
+            all(isinstance(elev, (int, float)) for elev in all_elevations)
+        )
+        print(f"  Data Valid: {'✅' if is_valid else '❌'}")
+
+
+async def error_handling_example():
+    """
+    Example showing error handling capabilities.
+    
+    This demonstrates how the simulator handles various error conditions.
+    """
+    print("⚠️  Error Handling Example")
+    print("=" * 30)
+    
+    config = get_test_config()
+    
+    # Test with unhealthy agents
+    print("Testing with unhealthy agents...")
+    agent_manager = Mock()
+    agent_manager.is_agent_healthy.return_value = False
+    
+    async with WorkflowSimulator(config, agent_manager) as simulator:
+        result = await simulator.simulate_workflow(WorkflowType.TERRAIN_LOADING)
+        
+        print(f"  Result: {'✅ Handled gracefully' if not result.success else '❌ Unexpected success'}")
+        if result.error:
+            print(f"  Error: {result.error.message}")
+        print(f"  Steps completed: {result.steps_completed}/{result.steps_total}")
+
+
+async def context_passing_example():
+    """
+    Example showing context passing between workflow steps.
+    
+    This demonstrates how data flows through workflow execution.
+    """
+    print("📦 Context Passing Example")
+    print("=" * 30)
+    
+    config = get_test_config()
+    agent_manager = Mock()
+    agent_manager.is_agent_healthy.return_value = True
+    
+    # Custom context with user preferences
+    custom_context = {
+        "ski_area": "saint_anton",
+        "grid_size": (128, 128),
+        "user_preferences": {
+            "detail_level": "ultra_high",
+            "cache_enabled": True,
+            "offline_mode": True
+        },
+        "session_id": "demo_session_123"
     }
     
-    config = get_test_config(overrides)
+    async with WorkflowSimulator(config, agent_manager) as simulator:
+        result = await simulator.simulate_workflow(
+            WorkflowType.TERRAIN_LOADING,
+            context=custom_context
+        )
+        
+        print("Input context:")
+        for key, value in custom_context.items():
+            print(f"  {key}: {value}")
+        
+        print(f"\nWorkflow result:")
+        print(f"  Success: {'✅' if result.success else '❌'}")
+        print(f"  Duration: {result.duration:.3f}s")
+        
+        print(f"\nOutput context keys:")
+        for key in sorted(result.context.keys()):
+            print(f"  • {key}")
+
+
+async def test_integration_example():
+    """
+    Example showing integration with test infrastructure.
     
-    print("Configuration with overrides:")
-    print(f"   Max workers: {config.max_workers}")
-    print(f"   Agent startup timeout: {config.timeouts.agent_startup}s")
-    print(f"   Log level: {config.log_level.value}")
-    print(f"   Reporting detail: {config.reporting.detail_level}")
-    print()
-
-
-def example_error_handling():
-    """Example of error handling and diagnostics."""
-    print("=== Error Handling Example ===\n")
+    This demonstrates converting workflow results to standard test results.
+    """
+    print("🧪 Test Integration Example")
+    print("=" * 30)
     
     config = get_test_config()
-    logger = TestLogger("error_example", config)
+    agent_manager = Mock()
+    agent_manager.is_agent_healthy.return_value = True
     
-    # Create a test result with error
-    test_result = TestResult("error_test", TestCategory.WORKFLOWS, TestStatus.NOT_STARTED, 0.0)
-    
-    try:
-        # Simulate an error
-        raise ConnectionError("Failed to connect to agent server")
-    except ConnectionError as e:
-        test_result.mark_failed(e, "Agent connection test failed")
-        logger.error("Test failed with connection error", error=str(e))
-    
-    print(f"Test status: {test_result.status.value}")
-    print(f"Error category: {test_result.error.category}")
-    print(f"Error severity: {test_result.error.severity.value}")
-    print(f"Error message: {test_result.error.message}")
-    print(f"Stack trace available: {test_result.error.stack_trace is not None}")
+    async with WorkflowSimulator(config, agent_manager) as simulator:
+        # Run a few workflows
+        workflow_results = {}
+        
+        for workflow_type in [WorkflowType.CACHE_INTEGRATION, WorkflowType.ERROR_SCENARIOS]:
+            result = await simulator.simulate_workflow(workflow_type)
+            workflow_results[workflow_type] = result
+        
+        # Convert to test results
+        test_results = simulator.create_test_results(workflow_results)
+        
+        print("Generated test results:")
+        for test_result in test_results:
+            print(f"  • {test_result.name}")
+            print(f"    Category: {test_result.category.value}")
+            print(f"    Status: {test_result.status.value}")
+            print(f"    Duration: {test_result.duration:.3f}s")
+            if test_result.message:
+                print(f"    Message: {test_result.message}")
+            print()
+
+
+async def main():
+    """Run all usage examples."""
+    print("🎿 Alpine Ski Slope Environment Viewer")
+    print("🧪 WorkflowSimulator Usage Examples")
+    print("=" * 60)
     print()
+    
+    examples = [
+        ("Quick Start", quick_start_example),
+        ("All Workflows", all_workflows_example),
+        ("Mock Data Generation", mock_data_example),
+        ("Error Handling", error_handling_example),
+        ("Context Passing", context_passing_example),
+        ("Test Integration", test_integration_example)
+    ]
+    
+    for example_name, example_func in examples:
+        try:
+            await example_func()
+            print()
+            print("─" * 60)
+            print()
+        except Exception as e:
+            print(f"❌ {example_name} failed: {e}")
+            print()
+    
+    print("✅ All examples completed!")
+    print()
+    print("📚 For more examples, see:")
+    print("  • examples/basic_usage.py - Fundamental patterns")
+    print("  • examples/advanced_usage.py - Advanced techniques")
+    print("  • examples/real_world_scenarios.py - Realistic scenarios")
+    print("  • examples/integration_patterns.py - CI/CD integration")
 
 
 if __name__ == "__main__":
-    # Run examples
-    asyncio.run(example_basic_usage())
-    example_configuration_overrides()
-    example_error_handling()
+    asyncio.run(main())
