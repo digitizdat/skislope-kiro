@@ -207,8 +207,8 @@ async def get_elevation_profile(
 
 
 # Register JSON-RPC methods
-jsonrpc_handler.register_method("get_hill_metrics", get_hill_metrics)
-jsonrpc_handler.register_method("get_elevation_profile", get_elevation_profile)
+jsonrpc_handler.register_method("getHillMetrics", get_hill_metrics)
+jsonrpc_handler.register_method("getElevationProfile", get_elevation_profile)
 
 # Register MCP tools
 mcp_handler.register_tool(

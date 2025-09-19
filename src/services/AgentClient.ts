@@ -26,6 +26,7 @@ import {
   DEFAULT_RETRY_CONFIG,
   AgentConfiguration
 } from '../models/AgentTypes';
+import { cacheManager } from '../utils/CacheManager';
 
 /**
  * Agent communication error class
@@ -65,21 +66,58 @@ export class AgentClient implements AgentClientInterface {
     const timeout = this.config.hillMetrics.timeout;
 
     try {
+      // Check cache first
+      const cachedData = await cacheManager.getCachedAgentResponse<HillMetricsResponse['data']>(
+        'hill-metrics',
+        request.area.id
+      );
+      
+      if (cachedData) {
+        console.log(`Using cached hill metrics data for area ${request.area.id}`);
+        return {
+          data: cachedData,
+          metadata: {
+            processingTime: 0,
+            dataSource: 'cache',
+            lastUpdated: new Date(),
+            gridResolution: request.gridSize
+          }
+        };
+      }
+
+      let response: HillMetricsResponse;
       if (protocol === 'mcp') {
-        return await this.callMCPAgent<HillMetricsRequest, HillMetricsResponse>(
+        response = await this.callMCPAgent<HillMetricsRequest, HillMetricsResponse>(
           endpoint,
           'getHillMetrics',
           request,
           timeout
         );
       } else {
-        return await this.callJSONRPCAgent<HillMetricsRequest, HillMetricsResponse>(
+        response = await this.callJSONRPCAgent<HillMetricsRequest, HillMetricsResponse>(
           endpoint,
           'getHillMetrics',
           request,
           timeout
         );
       }
+
+      // Cache the response
+      if (response.data) {
+        try {
+          await cacheManager.cacheAgentResponse(
+            'hill-metrics',
+            request.area.id,
+            response.data
+          );
+          console.log(`Cached hill metrics data for area ${request.area.id}`);
+        } catch (cacheError) {
+          console.warn('Failed to cache hill metrics response:', cacheError);
+          // Continue without caching - don't fail the entire operation
+        }
+      }
+
+      return response;
     } catch (error) {
       throw new AgentError(AgentType.HILL_METRICS, endpoint, error);
     }
@@ -95,21 +133,57 @@ export class AgentClient implements AgentClientInterface {
     const timeout = this.config.weather.cacheDuration;
 
     try {
+      // Check cache first
+      const cachedData = await cacheManager.getCachedAgentResponse<WeatherResponse['current']>(
+        'weather',
+        request.area.id
+      );
+      
+      if (cachedData) {
+        console.log(`Using cached weather data for area ${request.area.id}`);
+        return {
+          current: cachedData,
+          metadata: {
+            source: 'cache',
+            lastUpdated: new Date(),
+            accuracy: 1.0
+          }
+        };
+      }
+
+      let response: WeatherResponse;
       if (protocol === 'mcp') {
-        return await this.callMCPAgent<WeatherRequest, WeatherResponse>(
+        response = await this.callMCPAgent<WeatherRequest, WeatherResponse>(
           endpoint,
           'getWeatherData',
           request,
           timeout
         );
       } else {
-        return await this.callJSONRPCAgent<WeatherRequest, WeatherResponse>(
+        response = await this.callJSONRPCAgent<WeatherRequest, WeatherResponse>(
           endpoint,
           'getWeatherData',
           request,
           timeout
         );
       }
+
+      // Cache the response
+      if (response.current) {
+        try {
+          await cacheManager.cacheAgentResponse(
+            'weather',
+            request.area.id,
+            response.current
+          );
+          console.log(`Cached weather data for area ${request.area.id}`);
+        } catch (cacheError) {
+          console.warn('Failed to cache weather response:', cacheError);
+          // Continue without caching - don't fail the entire operation
+        }
+      }
+
+      return response;
     } catch (error) {
       // Try fallback data if available
       if (this.config.weather.fallbackData) {
@@ -137,21 +211,57 @@ export class AgentClient implements AgentClientInterface {
     const timeout = 10000; // Default timeout
 
     try {
+      // Check cache first
+      const cachedData = await cacheManager.getCachedAgentResponse<EquipmentResponse['data']>(
+        'equipment',
+        request.area.id
+      );
+      
+      if (cachedData) {
+        console.log(`Using cached equipment data for area ${request.area.id}`);
+        return {
+          data: cachedData,
+          metadata: {
+            lastUpdated: new Date(),
+            source: 'cache',
+            statusAccuracy: 1.0
+          }
+        };
+      }
+
+      let response: EquipmentResponse;
       if (protocol === 'mcp') {
-        return await this.callMCPAgent<EquipmentRequest, EquipmentResponse>(
+        response = await this.callMCPAgent<EquipmentRequest, EquipmentResponse>(
           endpoint,
           'getEquipmentData',
           request,
           timeout
         );
       } else {
-        return await this.callJSONRPCAgent<EquipmentRequest, EquipmentResponse>(
+        response = await this.callJSONRPCAgent<EquipmentRequest, EquipmentResponse>(
           endpoint,
           'getEquipmentData',
           request,
           timeout
         );
       }
+
+      // Cache the response
+      if (response.data) {
+        try {
+          await cacheManager.cacheAgentResponse(
+            'equipment',
+            request.area.id,
+            response.data
+          );
+          console.log(`Cached equipment data for area ${request.area.id}`);
+        } catch (cacheError) {
+          console.warn('Failed to cache equipment response:', cacheError);
+          // Continue without caching - don't fail the entire operation
+        }
+      }
+
+      return response;
     } catch (error) {
       throw new AgentError(AgentType.EQUIPMENT, endpoint, error);
     }
@@ -509,15 +619,15 @@ export const agentClient = new AgentClient(DEFAULT_AGENT_CONFIG);
  * Agent client factory for custom configurations
  */
 export function createAgentClient(
-  config: Partial<AgentConfiguration>,
+  config?: Partial<AgentConfiguration>,
   retryConfig?: Partial<RetryConfiguration>
 ): AgentClient {
   const fullConfig = {
     ...DEFAULT_AGENT_CONFIG,
     ...config,
-    hillMetrics: { ...DEFAULT_AGENT_CONFIG.hillMetrics, ...config.hillMetrics },
-    weather: { ...DEFAULT_AGENT_CONFIG.weather, ...config.weather },
-    equipment: { ...DEFAULT_AGENT_CONFIG.equipment, ...config.equipment }
+    hillMetrics: { ...DEFAULT_AGENT_CONFIG.hillMetrics, ...config?.hillMetrics },
+    weather: { ...DEFAULT_AGENT_CONFIG.weather, ...config?.weather },
+    equipment: { ...DEFAULT_AGENT_CONFIG.equipment, ...config?.equipment }
   };
 
   const fullRetryConfig = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };

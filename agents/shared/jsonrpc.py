@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi import Response
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import ValidationError
@@ -246,6 +247,15 @@ def create_jsonrpc_app(title: str, description: str) -> tuple[FastAPI, JSONRPCHa
         title=title,
         description=description,
         version="1.0.0",
+    )
+    
+    # Add CORS middleware to allow frontend requests
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"],
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
     )
     
     # Add health check endpoint

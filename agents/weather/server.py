@@ -42,8 +42,7 @@ health_checker = HealthChecker("weather")
 
 # JSON-RPC Methods
 async def get_weather(
-    latitude: float,
-    longitude: float,
+    area: Dict[str, Any],
     timestamp: Optional[str] = None,
     include_forecast: bool = False,
     forecast_days: int = 7,
@@ -51,11 +50,10 @@ async def get_weather(
     historical_days: int = 30,
 ) -> Dict[str, Any]:
     """
-    Get weather data for the specified coordinates.
+    Get weather data for the specified ski area.
     
     Args:
-        latitude: Latitude
-        longitude: Longitude
+        area: Ski area object with bounds and location info
         timestamp: Specific timestamp (ISO format, for historical data)
         include_forecast: Include forecast data
         forecast_days: Number of forecast days
@@ -72,6 +70,15 @@ async def get_weather(
         parsed_timestamp = None
         if timestamp:
             parsed_timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        
+        # Extract coordinates from area bounds (use center point)
+        bounds = area.get('bounds', {})
+        north_east = bounds.get('northEast', {})
+        south_west = bounds.get('southWest', {})
+        
+        # Calculate center coordinates
+        latitude = (north_east.get('lat', 46.0) + south_west.get('lat', 45.0)) / 2
+        longitude = (north_east.get('lng', 7.0) + south_west.get('lng', 6.0)) / 2
         
         # Create request
         weather_request = WeatherRequest(
@@ -339,9 +346,9 @@ async def get_weather_alerts(
 
 
 # Register JSON-RPC methods
-jsonrpc_handler.register_method("get_weather", get_weather)
-jsonrpc_handler.register_method("get_ski_conditions", get_ski_conditions)
-jsonrpc_handler.register_method("get_weather_alerts", get_weather_alerts)
+jsonrpc_handler.register_method("getWeatherData", get_weather)
+jsonrpc_handler.register_method("getSkiConditions", get_ski_conditions)
+jsonrpc_handler.register_method("getWeatherAlerts", get_weather_alerts)
 
 # Register MCP tools
 mcp_handler.register_tool(

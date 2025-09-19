@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StartPage } from './components/StartPage';
 import { EnvironmentView } from './components/EnvironmentView';
 import { MapInterface } from './components/MapInterface';
@@ -6,6 +6,7 @@ import { RunBrowser } from './components/RunBrowser';
 import { SkiArea } from './models/SkiArea';
 import { SkiRun } from './models/SkiRun';
 import { GridSize } from './models/TerrainData';
+import { offlineService } from './services/OfflineService';
 import './App.css';
 
 type AppView = 'start' | 'map' | 'runBrowser' | 'environment';
@@ -24,6 +25,26 @@ function App() {
     selectedRun: null,
     selectedGridSize: GridSize.MEDIUM
   });
+
+  // Initialize offline service and caching system
+  useEffect(() => {
+    const initializeOfflineService = async () => {
+      try {
+        await offlineService.initialize();
+        console.log('Offline service initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize offline service:', error);
+        // Continue without offline support
+      }
+    };
+
+    initializeOfflineService();
+
+    // Cleanup on unmount
+    return () => {
+      offlineService.destroy();
+    };
+  }, []);
 
   const handleAreaSelected = (area: SkiArea, gridSize: GridSize) => {
     setAppState(prev => ({

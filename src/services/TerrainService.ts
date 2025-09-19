@@ -16,6 +16,7 @@ import {
 } from '../models/TerrainData';
 import { agentClient } from './AgentClient';
 import { HillMetricsRequest } from '../models/AgentTypes';
+import { cacheManager } from '../utils/CacheManager';
 
 /**
  * Terrain mesh data structure for Three.js rendering
@@ -84,6 +85,13 @@ export class TerrainService implements TerrainServiceInterface {
    */
   async extractTerrainData(run: SkiRun, gridSize: GridSize): Promise<TerrainData> {
     try {
+      // Check cache first
+      const cachedData = await cacheManager.getCachedTerrainData(run.id, gridSize);
+      if (cachedData) {
+        console.log(`Using cached terrain data for run ${run.id} with grid size ${gridSize}`);
+        return cachedData;
+      }
+
       // Get the ski area for this run
       const skiArea = await this.getSkiAreaById(run.skiAreaId);
       if (!skiArea) {
@@ -137,6 +145,15 @@ export class TerrainService implements TerrainServiceInterface {
         area: skiArea,
         hillMetrics
       };
+
+      // Cache the terrain data
+      try {
+        await cacheManager.cacheTerrainData(terrainData, run, gridSize);
+        console.log(`Cached terrain data for run ${run.id} with grid size ${gridSize}`);
+      } catch (cacheError) {
+        console.warn('Failed to cache terrain data:', cacheError);
+        // Continue without caching - don't fail the entire operation
+      }
 
       return terrainData;
     } catch (error) {

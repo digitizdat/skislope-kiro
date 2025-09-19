@@ -60,8 +60,8 @@ npm run cache:clear
 ```bash
 # Environment and dependency management with uv
 uv venv                     # Create virtual environment
-uv pip install -r pyproject.toml  # Install dependencies
-uv add <package>            # Add new dependency
+uv sync                     # Install dependencies from pyproject.toml
+uv add <package>            # Add new dependency (ALWAYS use this, never pip install)
 uv remove <package>         # Remove dependency
 
 # Code quality with ruff
@@ -82,9 +82,12 @@ uv run python -m agents.equipment
 # Agent server health checks
 uv run python -m agents.health_check
 
-# Run tests
-uv run pytest agents/tests/
-uv run pytest --cov=agents  # With coverage
+# Run tests (CRITICAL: Always run before commits)
+uv run pytest agents/tests/ -v        # Backend unit tests
+uv run pytest --cov=agents           # With coverage
+npm test                              # Frontend unit tests
+npm run test:integration              # Frontend integration tests
+uv run python scripts/test_integration.py  # Full integration test suite (CRITICAL)
 
 # Monitoring and observability
 uv run python -m agents.monitor  # Start monitoring dashboard
@@ -114,6 +117,70 @@ tail -f logs/performance.log     # View performance metrics
 - Health monitoring with exponential backoff retry logic
 
 ## Development Standards
+
+> **📋 IMPORTANT**: See `.kiro/steering/development-workflow.md` for detailed development practices and lessons learned from dependency management issues.
+
+### Dependency Management Rules
+**CRITICAL: Always use the correct package manager for each part of the project**
+
+#### Python Dependencies (Backend)
+- **ALWAYS use `uv add`** - Never use `pip install` in this project
+- **NEVER mix package managers** - This causes environment inconsistencies
+- **Always commit pyproject.toml changes** when adding dependencies
+
+```bash
+# ✅ CORRECT: Add Python dependencies
+uv add fastapi uvicorn structlog
+uv add --dev pytest ruff mypy
+
+# ❌ WRONG: Never use pip in a uv project
+pip install fastapi  # DON'T DO THIS
+
+# ✅ CORRECT: Install from existing project
+uv sync
+```
+
+#### Node Dependencies (Frontend)
+```bash
+# ✅ CORRECT: Add Node dependencies
+npm install three @types/three
+npm install --save-dev vitest
+
+# ✅ CORRECT: Install from existing project
+npm install
+```
+
+### Testing Requirements
+**MANDATORY: All tests must pass before any commit or deployment**
+
+#### Test Coverage Requirements
+- **Backend**: All agent modules must have import tests at minimum
+- **Frontend**: All services and utilities must have unit tests
+- **Integration**: Critical paths must have end-to-end tests
+
+#### Pre-Commit Testing Checklist
+```bash
+# 1. Backend tests (MUST pass)
+uv run pytest agents/tests/ -v
+
+# 2. Frontend tests (MUST pass)  
+npm test
+
+# 3. Build verification (MUST succeed)
+npm run build
+
+# 4. Import verification (MUST succeed)
+uv run python -c "import agents.hill_metrics.server"
+uv run python -c "import agents.weather.server"
+uv run python -c "import agents.equipment.server"
+```
+
+#### Test Failure Investigation
+When tests fail:
+1. **Check import errors first** - Often indicates missing dependencies
+2. **Verify environment setup** - Ensure `uv sync` and `npm install` completed
+3. **Check for mixed package managers** - Never mix `pip` and `uv`
+4. **Run tests in isolation** - Test individual modules to isolate issues
 
 ### Commit Message Guidelines
 Follow Conventional Commits specification (https://www.conventionalcommits.org/en/v1.0.0/):

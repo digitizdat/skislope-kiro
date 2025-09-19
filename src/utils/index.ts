@@ -4,3 +4,4 @@
 
 export * from './ThreeSetup';
 export * from './AgentUtils';
+export * from './CacheManager';

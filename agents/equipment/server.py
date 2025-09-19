@@ -41,10 +41,9 @@ health_checker = HealthChecker("equipment")
 
 # JSON-RPC Methods
 async def get_equipment_data(
-    north: float,
-    south: float,
-    east: float,
-    west: float,
+    area: Dict[str, Any],
+    include_status: bool = True,
+    equipment_types: Optional[List[str]] = None,
     include_lifts: bool = True,
     include_trails: bool = True,
     include_facilities: bool = True,
@@ -53,13 +52,12 @@ async def get_equipment_data(
     open_trails_only: bool = False,
 ) -> Dict[str, Any]:
     """
-    Get equipment data for the specified geographic bounds.
+    Get equipment data for the specified ski area.
     
     Args:
-        north: Northern latitude bound
-        south: Southern latitude bound
-        east: Eastern longitude bound
-        west: Western longitude bound
+        area: Ski area object with bounds and location info
+        include_status: Include operational status
+        equipment_types: List of equipment types to include
         include_lifts: Include lift data
         include_trails: Include trail data
         include_facilities: Include facility data
@@ -74,6 +72,16 @@ async def get_equipment_data(
     
     try:
         # Create request
+        # Extract bounds from area
+        bounds = area.get('bounds', {})
+        north_east = bounds.get('northEast', {})
+        south_west = bounds.get('southWest', {})
+        
+        north = north_east.get('lat', 46.0)
+        south = south_west.get('lat', 45.0)
+        east = north_east.get('lng', 7.0)
+        west = south_west.get('lng', 6.0)
+        
         equipment_request = EquipmentRequest(
             north=north,
             south=south,
@@ -411,10 +419,10 @@ async def get_facilities(
 
 
 # Register JSON-RPC methods
-jsonrpc_handler.register_method("get_equipment_data", get_equipment_data)
-jsonrpc_handler.register_method("get_lift_status", get_lift_status)
-jsonrpc_handler.register_method("get_trail_conditions", get_trail_conditions)
-jsonrpc_handler.register_method("get_facilities", get_facilities)
+jsonrpc_handler.register_method("getEquipmentData", get_equipment_data)
+jsonrpc_handler.register_method("getLiftStatus", get_lift_status)
+jsonrpc_handler.register_method("getTrailConditions", get_trail_conditions)
+jsonrpc_handler.register_method("getFacilities", get_facilities)
 
 # Register MCP tools
 mcp_handler.register_tool(

@@ -1,0 +1,155 @@
+.cache-status {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: #ffffff;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.cache-status.offline {
+  border-color: rgba(255, 99, 71, 0.5);
+  background: rgba(255, 99, 71, 0.1);
+}
+
+.cache-status.online {
+  border-color: rgba(144, 238, 144, 0.5);
+  background: rgba(144, 238, 144, 0.1);
+}
+
+.cache-status.loading {
+  opacity: 0.7;
+}
+
+.cache-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cache-status-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.connection-indicator {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.connection-indicator.offline {
+  color: #ff6347;
+  background: rgba(255, 99, 71, 0.2);
+}
+
+.connection-indicator.online {
+  color: #90ee90;
+  background: rgba(144, 238, 144, 0.2);
+}
+
+.cache-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.cache-status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.cache-status-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.cache-status-value {
+  color: #ffffff;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.cache-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cache-clear-button {
+  background: rgba(255, 99, 71, 0.8);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cache-clear-button:hover {
+  background: rgba(255, 99, 71, 1);
+  transform: translateY(-1px);
+}
+
+.cache-clear-button:active {
+  transform: translateY(0);
+}
+
+.cache-clear-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .cache-status {
+    padding: 12px;
+    font-size: 13px;
+  }
+  
+  .cache-status-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .cache-status-header h3 {
+    font-size: 14px;
+  }
+  
+  .connection-indicator {
+    align-self: flex-end;
+  }
+}
+
+/* Animation for loading state */
+.cache-status.loading .cache-status-value {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

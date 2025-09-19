@@ -4,6 +4,7 @@
  */
 
 import { SkiRun } from '../models/SkiRun';
+import { cacheManager } from '../utils/CacheManager';
 
 export interface RunDatabaseServiceInterface {
   createRun(run: Omit<SkiRun, 'id' | 'createdAt' | 'lastModified'>): Promise<SkiRun>;
@@ -79,7 +80,15 @@ export class RunDatabaseService implements RunDatabaseServiceInterface {
       const store = transaction.objectStore(this.STORE_NAME);
       const request = store.add(newRun);
 
-      request.onsuccess = () => {
+      request.onsuccess = async () => {
+        // Cache the run definition
+        try {
+          await cacheManager.cacheRunDefinition(newRun);
+          console.log(`Cached new run definition: ${newRun.id}`);
+        } catch (cacheError) {
+          console.warn('Failed to cache run definition:', cacheError);
+          // Continue without caching - don't fail the entire operation
+        }
         resolve(newRun);
       };
 
@@ -116,7 +125,15 @@ export class RunDatabaseService implements RunDatabaseServiceInterface {
 
         const putRequest = store.put(updatedRun);
         
-        putRequest.onsuccess = () => {
+        putRequest.onsuccess = async () => {
+          // Update cache with the modified run
+          try {
+            await cacheManager.cacheRunDefinition(updatedRun);
+            console.log(`Updated cached run definition: ${updatedRun.id}`);
+          } catch (cacheError) {
+            console.warn('Failed to update cached run definition:', cacheError);
+            // Continue without caching - don't fail the entire operation
+          }
           resolve(updatedRun);
         };
 
@@ -142,7 +159,15 @@ export class RunDatabaseService implements RunDatabaseServiceInterface {
       const store = transaction.objectStore(this.STORE_NAME);
       const request = store.delete(id);
 
-      request.onsuccess = () => {
+      request.onsuccess = async () => {
+        // Invalidate cache for the deleted run
+        try {
+          await cacheManager.invalidateRunDefinition(id);
+          console.log(`Invalidated cached run definition: ${id}`);
+        } catch (cacheError) {
+          console.warn('Failed to invalidate cached run definition:', cacheError);
+          // Continue without cache invalidation - don't fail the entire operation
+        }
         resolve();
       };
 
@@ -157,6 +182,18 @@ export class RunDatabaseService implements RunDatabaseServiceInterface {
    * Requirements: 3.5 - Display saved runs for each ski area
    */
   async getRunsByArea(skiAreaId: string): Promise<SkiRun[]> {
+    // Try cache first
+    try {
+      const cachedRuns = await cacheManager.getCachedRunsByArea(skiAreaId);
+      if (cachedRuns.length > 0) {
+        console.log(`Using cached runs for area ${skiAreaId}`);
+        return cachedRuns.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      }
+    } catch (cacheError) {
+      console.warn('Failed to get cached runs:', cacheError);
+      // Continue with database query
+    }
+
     const db = await this.initDB();
     
     return new Promise((resolve, reject) => {
@@ -165,10 +202,22 @@ export class RunDatabaseService implements RunDatabaseServiceInterface {
       const index = store.index('skiAreaId');
       const request = index.getAll(skiAreaId);
 
-      request.onsuccess = () => {
+      request.onsuccess = async () => {
         const runs = request.result.map(this.deserializeRun);
         // Sort by creation date, newest first
         runs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        
+        // Cache the runs
+        try {
+          for (const run of runs) {
+            await cacheManager.cacheRunDefinition(run);
+          }
+          console.log(`Cached ${runs.length} runs for area ${skiAreaId}`);
+        } catch (cacheError) {
+          console.warn('Failed to cache runs:', cacheError);
+          // Continue without caching - don't fail the entire operation
+        }
+        
         resolve(runs);
       };
 

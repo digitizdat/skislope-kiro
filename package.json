@@ -12,7 +12,9 @@
     "cache:clear": "rm -rf node_modules/.vite",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:integration": "vitest run --reporter=verbose src/**/*.integration.test.ts",
+    "test:all": "npm run test && npm run test:integration"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.20",
