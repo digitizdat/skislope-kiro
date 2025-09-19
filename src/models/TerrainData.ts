@@ -3,6 +3,7 @@
  * Requirements: 7.2, 7.3 - Grid size options and terrain detail levels
  */
 
+import * as THREE from 'three';
 import { SkiArea, GeographicBounds } from './SkiArea';
 
 /**
@@ -120,6 +121,7 @@ export interface LODLevel {
   distance: number;
   vertexReduction: number;
   textureResolution: number;
+  geometry: THREE.BufferGeometry;
 }
 
 /**

@@ -4,11 +4,13 @@
  */
 
 import { FC, useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 import { SkiArea } from '../../models/SkiArea';
 import { SkiRun } from '../../models/SkiRun';
 import { GridSize } from '../../models/TerrainData';
 import { CameraMode } from '../../models/CameraState';
 import { ThreeSetup } from '../../utils/ThreeSetup';
+import { terrainService } from '../../services/TerrainService';
 import './EnvironmentView.css';
 
 interface EnvironmentViewProps {
@@ -30,6 +32,9 @@ const EnvironmentView: FC<EnvironmentViewProps> = ({
   const threeSetupRef = useRef<ThreeSetup | null>(null);
   const [currentCameraMode, setCurrentCameraMode] = useState<CameraMode>(CameraMode.FREEFLY);
   const [currentTimeOfDay, setCurrentTimeOfDay] = useState<'dawn' | 'morning' | 'noon' | 'afternoon' | 'dusk' | 'night'>('noon');
+  const [isLoadingTerrain, setIsLoadingTerrain] = useState(false);
+  const [terrainError, setTerrainError] = useState<string | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -37,6 +42,9 @@ const EnvironmentView: FC<EnvironmentViewProps> = ({
     // Initialize Three.js setup
     threeSetupRef.current = new ThreeSetup(containerRef.current);
     threeSetupRef.current.startAnimation();
+
+    // Load terrain data
+    loadTerrainData();
 
     // Cleanup on unmount
     return () => {
@@ -46,6 +54,60 @@ const EnvironmentView: FC<EnvironmentViewProps> = ({
       }
     };
   }, []);
+
+  // Reload terrain when run or grid size changes
+  useEffect(() => {
+    if (threeSetupRef.current) {
+      loadTerrainData();
+    }
+  }, [selectedRun, selectedGridSize]);
+
+  const loadTerrainData = async () => {
+    if (!threeSetupRef.current) return;
+
+    setIsLoadingTerrain(true);
+    setTerrainError(null);
+    setLoadingProgress(0);
+
+    try {
+      // Simulate progress updates
+      setLoadingProgress(25);
+      
+      // Extract terrain data for the selected run
+      const terrainData = await terrainService.extractTerrainData(selectedRun, selectedGridSize);
+      setLoadingProgress(50);
+
+      // Generate 3D mesh from terrain data
+      const terrainMesh = terrainService.generateMesh(terrainData);
+      setLoadingProgress(75);
+
+      // Add terrain to the scene
+      threeSetupRef.current.addTerrainMesh(terrainMesh);
+      setLoadingProgress(100);
+
+      // Position camera to view the terrain
+      const bounds = terrainMesh.boundingBox;
+      const center = bounds.getCenter(new THREE.Vector3());
+      const size = bounds.getSize(new THREE.Vector3());
+      
+      // Position camera above and back from terrain center
+      const cameraDistance = Math.max(size.x, size.z) * 1.5;
+      const cameraHeight = center.y + size.y * 0.5 + 50;
+      
+      await threeSetupRef.current.flyToPosition([
+        center.x,
+        cameraHeight,
+        center.z + cameraDistance
+      ], 3000);
+
+    } catch (error) {
+      console.error('Failed to load terrain:', error);
+      setTerrainError(error instanceof Error ? error.message : 'Failed to load terrain data');
+    } finally {
+      setIsLoadingTerrain(false);
+      setLoadingProgress(0);
+    }
+  };
 
   const handleCameraModeChange = (mode: CameraMode) => {
     if (threeSetupRef.current) {
@@ -86,7 +148,46 @@ const EnvironmentView: FC<EnvironmentViewProps> = ({
 
       <main className="environment-main">
         {/* 3D Scene Container */}
-        <div className="scene-container" ref={containerRef} />
+        <div className="scene-container" ref={containerRef}>
+          {/* Loading Overlay */}
+          {isLoadingTerrain && (
+            <div className="loading-overlay">
+              <div className="loading-content">
+                <div className="loading-spinner"></div>
+                <h3>Loading Terrain Data</h3>
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{ width: `${loadingProgress}%` }}
+                  ></div>
+                </div>
+                <p>{loadingProgress}% Complete</p>
+                <p className="loading-details">
+                  {loadingProgress < 25 && 'Connecting to hill metrics agent...'}
+                  {loadingProgress >= 25 && loadingProgress < 50 && 'Processing elevation data...'}
+                  {loadingProgress >= 50 && loadingProgress < 75 && 'Generating 3D mesh...'}
+                  {loadingProgress >= 75 && 'Applying materials and LOD...'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Error Overlay */}
+          {terrainError && (
+            <div className="error-overlay">
+              <div className="error-content">
+                <h3>Failed to Load Terrain</h3>
+                <p>{terrainError}</p>
+                <button 
+                  className="retry-button"
+                  onClick={loadTerrainData}
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         
         {/* Camera Controls Panel */}
         <div className="controls-panel">

@@ -5,12 +5,17 @@
 
 import * as THREE from 'three';
 import { CameraState } from '../../models/CameraState';
+import { TerrainMesh } from '../../services/TerrainService';
+
 
 export interface RenderManagerInterface {
   setupScene(): THREE.Scene;
   updateCamera(state: CameraState): void;
   renderFrame(scene: THREE.Scene, camera: THREE.PerspectiveCamera): void;
   setTimeOfDay(time: 'dawn' | 'morning' | 'noon' | 'afternoon' | 'dusk' | 'night'): void;
+  addTerrainMesh(terrainMesh: TerrainMesh): void;
+  removeTerrainMesh(): void;
+  updateLOD(camera: THREE.Camera): void;
   dispose(): void;
   getRenderer(): THREE.WebGLRenderer;
   getScene(): THREE.Scene;
@@ -22,6 +27,9 @@ export class RenderManager implements RenderManagerInterface {
   private ambientLight!: THREE.AmbientLight;
   private directionalLight!: THREE.DirectionalLight;
   private animationId: number | null = null;
+  private currentTerrainMesh: THREE.Mesh | null = null;
+
+  private lodGroup: THREE.LOD | null = null;
 
   constructor(container: HTMLElement) {
     // Initialize renderer
@@ -174,6 +182,9 @@ export class RenderManager implements RenderManagerInterface {
 
     window.removeEventListener('resize', this.handleResize.bind(this));
     
+    // Clean up terrain resources
+    this.removeTerrainMesh();
+    
     // Clean up Three.js resources
     this.scene.traverse((object) => {
       if (object instanceof THREE.Mesh) {
@@ -195,5 +206,121 @@ export class RenderManager implements RenderManagerInterface {
 
   public getScene(): THREE.Scene {
     return this.scene;
+  }
+
+  /**
+   * Add terrain mesh to the scene with LOD support
+   * Requirements: 7.5 - LOD system for different grid sizes applied to run boundaries
+   */
+  public addTerrainMesh(terrainMesh: TerrainMesh): void {
+    // Remove existing terrain if present
+    this.removeTerrainMesh();
+
+
+
+    if (terrainMesh.lodLevels.length > 0) {
+      // Create LOD group for automatic level switching
+      this.lodGroup = new THREE.LOD();
+
+      // Add main geometry at closest distance
+      const mainMesh = new THREE.Mesh(terrainMesh.geometry, terrainMesh.materials[0]);
+      mainMesh.castShadow = true;
+      mainMesh.receiveShadow = true;
+      this.lodGroup.addLevel(mainMesh, 0);
+
+      // Add LOD levels
+      for (const lodLevel of terrainMesh.lodLevels) {
+        const lodMesh = new THREE.Mesh(lodLevel.geometry, terrainMesh.materials[0]);
+        lodMesh.castShadow = true;
+        lodMesh.receiveShadow = true;
+        this.lodGroup.addLevel(lodMesh, lodLevel.distance);
+      }
+
+      this.scene.add(this.lodGroup);
+    } else {
+      // No LOD levels, add single mesh
+      this.currentTerrainMesh = new THREE.Mesh(terrainMesh.geometry, terrainMesh.materials[0]);
+      this.currentTerrainMesh.castShadow = true;
+      this.currentTerrainMesh.receiveShadow = true;
+      this.scene.add(this.currentTerrainMesh);
+    }
+
+    // Update shadow camera to encompass terrain
+    this.updateShadowCamera(terrainMesh.boundingBox);
+  }
+
+  /**
+   * Remove current terrain mesh from scene
+   */
+  public removeTerrainMesh(): void {
+    if (this.lodGroup) {
+      this.scene.remove(this.lodGroup);
+      
+      // Dispose of LOD geometries and materials
+      this.lodGroup.levels.forEach(level => {
+        const mesh = level.object as THREE.Mesh;
+        mesh.geometry.dispose();
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(material => material.dispose());
+        } else {
+          mesh.material.dispose();
+        }
+      });
+      
+      this.lodGroup = null;
+    }
+
+    if (this.currentTerrainMesh) {
+      this.scene.remove(this.currentTerrainMesh);
+      this.currentTerrainMesh.geometry.dispose();
+      
+      if (Array.isArray(this.currentTerrainMesh.material)) {
+        this.currentTerrainMesh.material.forEach(material => material.dispose());
+      } else {
+        this.currentTerrainMesh.material.dispose();
+      }
+      
+      this.currentTerrainMesh = null;
+    }
+
+
+  }
+
+  /**
+   * Update LOD based on camera position
+   * Requirements: 7.5 - Dynamic LOD based on camera distance
+   */
+  public updateLOD(camera: THREE.Camera): void {
+    if (this.lodGroup) {
+      this.lodGroup.update(camera);
+    }
+  }
+
+  /**
+   * Update shadow camera to encompass terrain bounds
+   */
+  private updateShadowCamera(boundingBox: THREE.Box3): void {
+    const size = boundingBox.getSize(new THREE.Vector3());
+    const center = boundingBox.getCenter(new THREE.Vector3());
+
+    // Expand shadow camera to cover terrain
+    const maxSize = Math.max(size.x, size.z) * 1.2; // Add 20% padding
+    
+    this.directionalLight.shadow.camera.left = -maxSize / 2;
+    this.directionalLight.shadow.camera.right = maxSize / 2;
+    this.directionalLight.shadow.camera.top = maxSize / 2;
+    this.directionalLight.shadow.camera.bottom = -maxSize / 2;
+    this.directionalLight.shadow.camera.near = 0.5;
+    this.directionalLight.shadow.camera.far = size.y + 200; // Height + buffer
+
+    // Position light above terrain center
+    this.directionalLight.position.set(
+      center.x + 50,
+      center.y + size.y + 100,
+      center.z + 50
+    );
+    this.directionalLight.target.position.copy(center);
+
+    this.directionalLight.shadow.camera.updateProjectionMatrix();
   }
 }

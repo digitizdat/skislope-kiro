@@ -3,6 +3,7 @@ import { RenderManager } from '../managers/RenderManager/RenderManager'
 import { CameraManager } from '../managers/CameraManager/CameraManager'
 import { InputManager } from '../managers/InputManager/InputManager'
 import { CameraMode } from '../models/CameraState'
+import { TerrainMesh } from '../services/TerrainService'
 
 /**
  * Enhanced Three.js setup with integrated camera and input management
@@ -15,6 +16,7 @@ export class ThreeSetup {
   private cameraManager: CameraManager
   private inputManager: InputManager
   private animationId: number | null = null
+  private hasTerrainMesh: boolean = false
 
   constructor(container: HTMLElement) {
     // Initialize camera first
@@ -35,8 +37,10 @@ export class ThreeSetup {
     // Get scene from render manager
     this.scene = this.renderManager.getScene()
 
-    // Add a test cube to verify rendering
-    this.addTestGeometry()
+    // Add a test cube to verify rendering (only if no terrain is loaded)
+    if (!this.hasTerrainMesh) {
+      this.addTestGeometry()
+    }
 
     // Handle window resize
     window.addEventListener('resize', this.handleResize.bind(this))
@@ -103,8 +107,13 @@ export class ThreeSetup {
       const currentCameraState = this.cameraManager.getCurrentState()
       this.cameraManager.updateCamera(currentCameraState, inputState)
       
-      // Animate test geometry
-      this.animate()
+      // Update LOD based on camera
+      this.renderManager.updateLOD(this.camera)
+      
+      // Animate test geometry (only if no terrain)
+      if (!this.hasTerrainMesh) {
+        this.animate()
+      }
       
       // Render the frame
       this.renderManager.renderFrame(this.scene, this.camera)
@@ -173,5 +182,48 @@ export class ThreeSetup {
 
   public async flyToPosition(position: [number, number, number], duration: number = 2000): Promise<void> {
     return this.cameraManager.flyToPosition(position, duration)
+  }
+
+  // Terrain mesh methods
+  public addTerrainMesh(terrainMesh: TerrainMesh): void {
+    // Remove test geometry if present
+    if (!this.hasTerrainMesh) {
+      this.clearTestGeometry()
+    }
+
+    // Add terrain mesh to render manager
+    this.renderManager.addTerrainMesh(terrainMesh)
+    this.hasTerrainMesh = true
+  }
+
+  public removeTerrainMesh(): void {
+    this.renderManager.removeTerrainMesh()
+    this.hasTerrainMesh = false
+    
+    // Add test geometry back if no terrain
+    this.addTestGeometry()
+  }
+
+  private clearTestGeometry(): void {
+    // Remove test objects from scene
+    const objectsToRemove: THREE.Object3D[] = []
+    
+    this.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        objectsToRemove.push(object)
+      }
+    })
+
+    objectsToRemove.forEach(object => {
+      this.scene.remove(object)
+      if (object instanceof THREE.Mesh) {
+        object.geometry.dispose()
+        if (Array.isArray(object.material)) {
+          object.material.forEach(material => material.dispose())
+        } else {
+          object.material.dispose()
+        }
+      }
+    })
   }
 }
