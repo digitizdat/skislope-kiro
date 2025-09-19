@@ -1,0 +1,241 @@
+/**
+ * Grid Size Selector Styles - Terrain detail level selection with performance indicators
+ */
+
+.grid-size-selector {
+  margin-bottom: 2rem;
+}
+
+.grid-size-selector h3 {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.grid-size-selector > p {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+}
+
+.grid-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.grid-option {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.grid-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.grid-option:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+.grid-option.selected {
+  background: rgba(79, 70, 229, 0.2);
+  border-color: #4f46e5;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.grid-option.low {
+  border-left: 4px solid #22c55e;
+}
+
+.grid-option.medium {
+  border-left: 4px solid #eab308;
+}
+
+.grid-option.high {
+  border-left: 4px solid #f97316;
+}
+
+.grid-option.extreme {
+  border-left: 4px solid #ef4444;
+}
+
+.option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.option-label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.performance-indicator {
+  font-size: 1.2rem;
+}
+
+.option-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.option-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.cell-count {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.performance-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.warning-icon {
+  font-size: 0.9rem;
+}
+
+.warning-text {
+  font-size: 0.8rem;
+  color: #fca5a5;
+  font-weight: 500;
+}
+
+.selection-summary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.selection-summary h4 {
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+}
+
+.summary-details p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.summary-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  color: #fca5a5;
+  font-size: 0.9rem;
+}
+
+.hardware-recommendations {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.hardware-recommendations h4 {
+  font-size: 1.1rem;
+  color: #93c5fd;
+  margin: 0 0 1rem 0;
+}
+
+.hardware-recommendations ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.hardware-recommendations li {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  padding: 0.25rem 0;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.hardware-recommendations li::before {
+  content: "•";
+  color: #60a5fa;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .grid-options {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .grid-option {
+    padding: 0.75rem;
+  }
+  
+  .option-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .performance-indicator {
+    align-self: flex-end;
+  }
+  
+  .selection-summary {
+    padding: 1rem;
+  }
+  
+  .hardware-recommendations {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-size-selector h3 {
+    font-size: 1.3rem;
+  }
+  
+  .option-label {
+    font-size: 1.1rem;
+  }
+  
+  .option-description {
+    font-size: 0.85rem;
+  }
+}

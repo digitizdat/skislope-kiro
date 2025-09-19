@@ -1,0 +1,211 @@
+/**
+ * Map Interface Styles
+ * Requirements: 10.1, 10.2, 10.3, 10.4 - Interactive satellite map interface
+ */
+
+.map-interface {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f8fafc;
+}
+
+.map-interface-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.back-button {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateX(-2px);
+}
+
+.map-interface-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.map-interface-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.map-interface-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.map-container {
+  flex: 1;
+  position: relative;
+  background-color: #e2e8f0;
+}
+
+.map-container .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.map-controls {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 300px;
+}
+
+.control-button {
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+}
+
+.control-button.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.control-button.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.control-button.secondary {
+  background: white;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.control-button.secondary:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+.control-button.danger {
+  background: #e53e3e;
+  color: white;
+}
+
+.control-button.danger:hover {
+  background: #c53030;
+}
+
+.control-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.drawing-controls {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.completed-controls {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drawing-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #718096;
+  line-height: 1.4;
+}
+
+.map-sidebar {
+  width: 350px;
+  background: white;
+  border-left: 1px solid #e2e8f0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Leaflet polygon styling */
+.leaflet-interactive {
+  cursor: crosshair;
+}
+
+.leaflet-container.drawing-mode {
+  cursor: crosshair;
+}
+
+/* Custom polygon styles */
+.leaflet-polygon-pane .leaflet-interactive {
+  stroke-dasharray: 5, 5;
+  animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .map-interface-content {
+    flex-direction: column;
+  }
+  
+  .map-sidebar {
+    width: 100%;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .map-controls {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 1rem;
+    max-width: none;
+  }
+  
+  .map-interface-header {
+    padding: 1rem;
+  }
+  
+  .map-interface-header h1 {
+    font-size: 1.25rem;
+  }
+}

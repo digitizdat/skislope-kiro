@@ -1,0 +1,1 @@
+"""Equipment Agent for ski infrastructure data management."""

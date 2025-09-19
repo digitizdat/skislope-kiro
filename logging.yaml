@@ -1,0 +1,61 @@
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  json:
+    format: '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s", "module": "%(module)s", "function": "%(funcName)s", "line": %(lineno)d}'
+    datefmt: '%Y-%m-%dT%H:%M:%S'
+  
+  detailed:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: detailed
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: json
+    filename: logs/agents.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+
+  performance:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: logs/performance.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 3
+    encoding: utf8
+
+loggers:
+  agents:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: false
+
+  agents.performance:
+    level: INFO
+    handlers: [performance]
+    propagate: false
+
+  uvicorn:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+
+  uvicorn.access:
+    level: INFO
+    handlers: [file]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console, file]

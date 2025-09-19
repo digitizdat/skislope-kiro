@@ -1,0 +1,208 @@
+/**
+ * Run Statistics Panel Styles
+ * Requirements: 10.4, 10.5 - Visual feedback and run statistics display
+ */
+
+.run-statistics-panel {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.run-statistics-panel h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.statistics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.statistic-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statistic-item label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statistic-item .statistic-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.slope-category {
+  font-size: 0.8rem;
+  font-weight: 400;
+  margin-left: 0.5rem;
+  opacity: 0.8;
+}
+
+/* Slope difficulty color coding */
+.statistic-item.slope-gentle .statistic-value {
+  color: #38a169;
+}
+
+.statistic-item.slope-moderate .statistic-value {
+  color: #3182ce;
+}
+
+.statistic-item.slope-steep .statistic-value {
+  color: #d69e2e;
+}
+
+.statistic-item.slope-very-steep .statistic-value {
+  color: #e53e3e;
+}
+
+.statistic-item.slope-extreme .statistic-value {
+  color: #9f1239;
+  font-weight: 700;
+}
+
+.bounding-box {
+  margin-bottom: 1.5rem;
+}
+
+.bounding-box h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.coordinates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.coordinate-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.coordinate-item label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #718096;
+}
+
+.coordinate-item .coordinate-value {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.8rem;
+  color: #4a5568;
+  background: #f7fafc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  display: block;
+}
+
+.validation-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.validation-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.validation-status.valid {
+  background: #f0fff4;
+  color: #22543d;
+  border: 1px solid #9ae6b4;
+}
+
+.validation-status.invalid {
+  background: #fed7d7;
+  color: #742a2a;
+  border: 1px solid #feb2b2;
+}
+
+.status-icon {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.validation-errors,
+.validation-warnings {
+  margin-bottom: 1rem;
+}
+
+.validation-errors h4,
+.validation-warnings h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.validation-errors h4 {
+  color: #e53e3e;
+}
+
+.validation-warnings h4 {
+  color: #d69e2e;
+}
+
+.validation-errors ul,
+.validation-warnings ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.error-item,
+.warning-item {
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.error-item {
+  background: #fed7d7;
+  color: #742a2a;
+  border-left: 3px solid #e53e3e;
+}
+
+.warning-item {
+  background: #fefcbf;
+  color: #744210;
+  border-left: 3px solid #d69e2e;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .run-statistics-panel {
+    padding: 1rem;
+  }
+  
+  .statistics-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .coordinates {
+    gap: 0.75rem;
+  }
+}

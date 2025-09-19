@@ -1,0 +1,211 @@
+/**
+ * Start Page Styles - Main ski area selection interface
+ */
+
+.start-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+}
+
+.start-page-header {
+  padding: 2rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.start-page-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #ffffff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.start-page-header p {
+  margin: 0;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.start-page-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ski-area-selection {
+  margin-bottom: 3rem;
+}
+
+.ski-area-selection h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+}
+
+.ski-area-selection > p {
+  text-align: center;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 2rem 0;
+}
+
+.ski-area-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.configuration-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.selected-area-info {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.selected-area-info h3 {
+  font-size: 1.8rem;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+}
+
+.selected-area-info p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.25rem 0;
+  font-size: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.browse-runs-btn,
+.start-exploration-btn {
+  flex: 1;
+  max-width: 250px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.browse-runs-btn {
+  background: linear-gradient(45deg, #059669, #10b981);
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+}
+
+.browse-runs-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+  background: linear-gradient(45deg, #047857, #059669);
+}
+
+.start-exploration-btn {
+  background: linear-gradient(45deg, #4f46e5, #7c3aed);
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.start-exploration-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  background: linear-gradient(45deg, #5b52e8, #8b5cf6);
+}
+
+.browse-runs-btn:active,
+.start-exploration-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .ski-area-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .start-page-header {
+    padding: 1rem;
+  }
+  
+  .start-page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .start-page-header p {
+    font-size: 1rem;
+  }
+  
+  .start-page-main {
+    padding: 1rem;
+  }
+  
+  .ski-area-selection h2 {
+    font-size: 2rem;
+  }
+  
+  .ski-area-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .configuration-section {
+    padding: 1.5rem;
+  }
+  
+  .selected-area-info h3 {
+    font-size: 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .browse-runs-btn,
+  .start-exploration-btn {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .start-page-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .ski-area-selection h2 {
+    font-size: 1.8rem;
+  }
+  
+  .configuration-section {
+    padding: 1rem;
+  }
+}

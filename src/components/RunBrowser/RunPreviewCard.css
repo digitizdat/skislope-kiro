@@ -1,0 +1,387 @@
+/**
+ * Run Preview Card Component Styles
+ * Requirements: 10.7, 10.8 - Run preview cards with metadata, statistics, editing functionality
+ */
+
+.run-preview-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.run-preview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.run-preview-card.selected {
+  border-color: rgba(34, 197, 94, 0.8);
+  background: rgba(34, 197, 94, 0.1);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.run-preview-card.editing {
+  cursor: default;
+  border-color: rgba(59, 130, 246, 0.8);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.card-thumbnail {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+}
+
+.thumbnail-map {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+
+.difficulty-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+  backdrop-filter: blur(5px);
+}
+
+.card-content {
+  padding: 1rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.run-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  flex: 1;
+  margin-right: 0.5rem;
+}
+
+.surface-type {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.run-statistics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+}
+
+.run-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: white;
+}
+
+.tag-more {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+
+.run-notes {
+  margin-bottom: 1rem;
+}
+
+.run-notes p {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.card-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0.75rem;
+}
+
+.run-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.created-date,
+.modified-date {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.card-actions {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.run-preview-card:hover .card-actions {
+  opacity: 1;
+}
+
+.action-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.action-button:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.edit-button:hover {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.duplicate-button:hover {
+  background: rgba(34, 197, 94, 0.8);
+}
+
+.delete-button:hover {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+/* Edit Form Styles */
+.edit-form {
+  padding: 1rem;
+}
+
+.edit-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem;
+}
+
+.edit-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: white;
+}
+
+.edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  opacity: 0.9;
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.8);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.field-group input::placeholder,
+.field-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.field-group textarea {
+  resize: vertical;
+  min-height: 4rem;
+  font-family: inherit;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1rem;
+}
+
+.cancel-button {
+  background: rgba(107, 114, 128, 0.8);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background: rgba(107, 114, 128, 1);
+}
+
+.save-button {
+  background: rgba(34, 197, 94, 0.8);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.save-button:hover {
+  background: rgba(34, 197, 94, 1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .run-statistics {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .stat {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stat-label {
+    margin-bottom: 0;
+    margin-right: 0.5rem;
+  }
+
+  .card-actions {
+    position: static;
+    opacity: 1;
+    justify-content: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .edit-actions {
+    flex-direction: column;
+  }
+
+  .cancel-button,
+  .save-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-content {
+    padding: 0.75rem;
+  }
+
+  .run-name {
+    font-size: 1rem;
+  }
+
+  .run-statistics {
+    gap: 0.25rem;
+  }
+
+  .stat {
+    padding: 0.375rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .stat-value {
+    font-size: 0.8rem;
+  }
+}

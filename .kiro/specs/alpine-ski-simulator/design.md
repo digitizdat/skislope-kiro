@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Alpine Ski Slope Environment Viewer is a browser-based 3D web application that provides immersive exploration of realistic ski slope environments using real topographical data from five world-renowned ski areas: Chamonix, Whistler, Saint Anton am Arlberg, Zermatt, and Copper Mountain. The system uses independent agent servers that communicate via JSON-RPC over HTTP to provide hill metrics, weather data, and equipment information. The browser client leverages WebGL through Three.js for high-performance 3D rendering with configurable terrain detail levels (32x32 to 128x128 grid cells). This system serves as a foundation for future FIS World Cup alpine skiing event simulation and supports the MCP protocol for integration with other tools and agents.
+The Alpine Ski Slope Environment Viewer is a browser-based 3D web application that provides immersive exploration of user-defined ski run areas using real topographical data and satellite imagery from five world-renowned ski areas: Chamonix, Whistler, Saint Anton am Arlberg, Zermatt, and Copper Mountain. Users define custom run boundaries by drawing on satellite maps, creating precise geographic areas for 3D exploration. The system uses independent agent servers that communicate via JSON-RPC over HTTP to provide hill metrics, weather data, and equipment information. The browser client leverages WebGL through Three.js for high-performance 3D rendering with configurable terrain detail levels (32x32 to 128x128 grid cells) applied only to the user-defined run areas. This system serves as a foundation for future FIS World Cup alpine skiing event simulation and supports the MCP protocol for integration with other tools and agents.
 
 ## Architecture
 
@@ -16,7 +16,8 @@ The Alpine Ski Slope Environment Viewer is a browser-based 3D web application th
 │   Components    │   (Zustand/     │                             │
 │                 │    Pinia)       │                             │
 │ • StartPage     │ • EnvironmentSt │ • SkiArea (5 predefined)    │
-│ • SlopeSelector │ • TerrainStore  │ • TerrainData (32x32-128x128)│
+│ • MapInterface  │ • TerrainStore  │ • SkiRun (user-defined)     │
+│ • RunSelector   │ • RunStore      │ • TerrainData (32x32-128x128)│
 │ • EnvironmentView│ • CameraStore   │ • CameraState               │
 │ • DetailSelector│ • WeatherStore  │ • WeatherData               │
 │ • SettingsPanel │ • AgentStore    │ • AgentResponse             │
@@ -206,16 +207,53 @@ interface JSONRPCResponse {
 }
 ```
 
-### 5. Data Service
+### 5. Map Interface System
+
+**MapService**
+```typescript
+interface MapServiceInterface {
+    loadSatelliteImagery(area: SkiArea): Promise<string>;
+    loadTopographicalOverlay(area: SkiArea): Promise<TopographicalData>;
+    calculateRunStatistics(boundary: GeographicCoordinate[]): RunStatistics;
+    validateRunBoundary(boundary: GeographicCoordinate[]): ValidationResult;
+    exportRunToGeoJSON(run: SkiRun): GeoJSONFeature;
+}
+
+interface RunStatistics {
+    estimatedLength: number;
+    verticalDrop: number;
+    averageSlope: number;
+    boundingBox: GeographicBounds;
+    area: number; // in square meters
+}
+```
+
+### 6. Run Management System
+
+**RunService**
+```typescript
+interface RunServiceInterface {
+    createRun(run: Omit<SkiRun, 'id' | 'createdAt' | 'lastModified'>): Promise<SkiRun>;
+    updateRun(id: string, updates: Partial<SkiRun>): Promise<SkiRun>;
+    deleteRun(id: string): Promise<void>;
+    getRunsByArea(skiAreaId: string): Promise<SkiRun[]>;
+    getUserRuns(userId: string): Promise<SkiRun[]>;
+    getPublicRuns(skiAreaId?: string): Promise<SkiRun[]>;
+    duplicateRun(id: string, newName: string): Promise<SkiRun>;
+}
+```
+
+### 7. Data Service
 
 **DataService**
 ```typescript
 interface DataServiceInterface {
     getAvailableSkiAreas(): SkiArea[];
-    loadTerrainData(area: SkiArea, gridSize: GridSize): Promise<TerrainData>;
-    cacheTerrainData(data: TerrainData, area: SkiArea, gridSize: GridSize): Promise<void>;
-    loadCachedData(area: SkiArea, gridSize: GridSize): Promise<TerrainData | null>;
-    preloadArea(area: SkiArea, gridSize: GridSize): Promise<void>;
+    loadTerrainData(run: SkiRun, gridSize: GridSize): Promise<TerrainData>;
+    cacheTerrainData(data: TerrainData, run: SkiRun, gridSize: GridSize): Promise<void>;
+    loadCachedData(run: SkiRun, gridSize: GridSize): Promise<TerrainData | null>;
+    preloadRun(run: SkiRun, gridSize: GridSize): Promise<void>;
+    extractTerrainFromBoundary(area: SkiArea, boundary: GeographicCoordinate[]): Promise<TerrainData>;
 }
 ```
 
@@ -232,8 +270,36 @@ interface SkiArea {
     bounds: GeographicBounds;
     elevation: { min: number; max: number };
     previewImage: string;
+    satelliteImageUrl: string;
     agentEndpoints: AgentEndpoints;
     fisCompatible: boolean; // For future World Cup simulation
+}
+
+interface SkiRun {
+    id: string;
+    name: string;
+    skiAreaId: string;
+    boundary: GeographicCoordinate[];
+    metadata: RunMetadata;
+    createdBy: string;
+    createdAt: Date;
+    lastModified: Date;
+    isPublic: boolean;
+}
+
+interface RunMetadata {
+    difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'custom';
+    estimatedLength: number;
+    verticalDrop: number;
+    averageSlope: number;
+    surfaceType: SurfaceType;
+    notes?: string;
+    tags: string[];
+}
+
+interface GeographicCoordinate {
+    lat: number;
+    lng: number;
 }
 
 interface AgentEndpoints {
