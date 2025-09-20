@@ -48,7 +48,7 @@
   - Ensure proper async operation handling in terrain loading tests
   - _Requirements: 2.2, 3.1, 3.2_
 
-- [ ] 9. Fix ThreeSetup test failures
+- [x] 9. Fix ThreeSetup test failures
   - Update ThreeSetup tests to use WebGL context mocks
   - Fix WebGL renderer creation in headless test environment
   - Ensure Three.js scene and camera creation works in test mode
