@@ -65,11 +65,17 @@ pre-commit:
       run: |
         echo "Checking dependency consistency..."
         
-        # Check for mixed package manager usage
-        if pip list 2>/dev/null | grep -E "(fastapi|uvicorn|structlog)" >/dev/null; then
-          echo "✗ ERROR: Found packages installed via pip in uv project"
-          echo "  Please use 'uv add' instead of 'pip install'"
+        # Check if we're in a uv virtual environment
+        if [ -z "$VIRTUAL_ENV" ] || [ ! -f "$VIRTUAL_ENV/pyvenv.cfg" ]; then
+          echo "✗ ERROR: Not in a virtual environment"
+          echo "  Run 'source .venv/bin/activate' or 'uv run' commands"
           exit 1
+        fi
+        
+        # Check if pyvenv.cfg indicates this is a uv-managed environment
+        if ! grep -q "uv = " "$VIRTUAL_ENV/pyvenv.cfg" 2>/dev/null; then
+          echo "⚠ WARNING: Virtual environment not created by uv"
+          echo "  Consider recreating with 'rm -rf .venv && uv venv && uv sync'"
         fi
         
         # Verify uv.lock is up to date

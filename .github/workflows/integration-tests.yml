@@ -40,7 +40,7 @@ jobs:
         
     - name: Install Node dependencies
       run: |
-        npm ci
+        npm ci || npm install
         
     - name: Verify Python imports
       run: |
@@ -140,7 +140,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv sync
-        npm ci
+        npm ci || npm install
         
     - name: Build production assets
       run: |
