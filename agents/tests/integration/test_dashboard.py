@@ -7,6 +7,7 @@ Tests dashboard data management, server functionality, and report integration.
 import json
 import tempfile
 import time
+from contextlib import suppress
 from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
@@ -206,7 +207,13 @@ class TestDashboardServer:
     @pytest.fixture
     def dashboard_server(self, dashboard_data):
         """Create DashboardServer instance."""
-        return DashboardServer(dashboard_data, port=0)  # Use port 0 for auto-assignment
+        server = DashboardServer(
+            dashboard_data, port=0
+        )  # Use port 0 for auto-assignment
+        yield server
+        # Cleanup: ensure server is stopped after test
+        with suppress(Exception):
+            server.stop()
 
     def test_server_initialization(self, dashboard_server):
         """Test server initialization."""
@@ -297,22 +304,46 @@ class TestDashboardServer:
 
     def test_port_auto_increment(self, dashboard_data):
         """Test port auto-increment when port is in use."""
+        import socket
+        import time
+
+        # Find an available port to use for testing
+        def find_free_port():
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("localhost", 0))
+                return s.getsockname()[1]
+
+        test_port = find_free_port()
+
         # Create first server
-        server1 = DashboardServer(dashboard_data, port=8080)
+        server1 = DashboardServer(dashboard_data, port=test_port)
         url1 = server1.start()
 
+        # Give the first server a moment to fully bind to the port
+        time.sleep(0.1)
+
+        server2 = None
         try:
             # Create second server with same port
-            server2 = DashboardServer(dashboard_data, port=8080)
+            server2 = DashboardServer(dashboard_data, port=test_port)
             url2 = server2.start()
 
             # Should use different ports
             assert url1 != url2
 
-            server2.stop()
+            # Extract port numbers to verify they're different
+            port1 = int(url1.split(":")[-1])
+            port2 = int(url2.split(":")[-1])
+            assert port1 != port2
+            assert port2 == port1 + 1  # Should increment by 1
 
         finally:
+            # Ensure proper cleanup in reverse order
+            if server2:
+                server2.stop()
+                time.sleep(0.1)  # Give time for port to be released
             server1.stop()
+            time.sleep(0.1)  # Give time for port to be released
 
 
 class TestTestResultsDashboard:

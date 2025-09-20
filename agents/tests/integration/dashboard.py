@@ -207,7 +207,7 @@ class DashboardServer:
             return url
 
         except OSError as e:
-            if e.errno == 48:  # Address already in use
+            if e.errno in (48, 98):  # Address already in use (macOS: 48, Linux: 98)
                 self.port += 1
                 return self.start()  # Try next port
             raise
@@ -215,9 +215,15 @@ class DashboardServer:
     def stop(self) -> None:
         """Stop the dashboard server."""
         if self.server:
-            self.server.shutdown()
-            self.server.server_close()
-            logger.info("Dashboard server stopped")
+            try:
+                self.server.shutdown()
+                self.server.server_close()
+                logger.info("Dashboard server stopped")
+            except Exception as e:
+                logger.warning(f"Error stopping dashboard server: {e}")
+            finally:
+                self.server = None
+                self.server_thread = None
 
     def _generate_dashboard_html(self) -> str:
         """Generate the main dashboard HTML."""
