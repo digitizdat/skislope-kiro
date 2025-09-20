@@ -265,10 +265,17 @@ export async function initializeTestEnvironment(): Promise<void> {
       testState.webglContext = createWebGLContextMock();
     }
     
-    // Initialize CacheManager for tests that need it
+    // Initialize CacheManager for tests that need it with timeout
     try {
       const { cacheManager } = await import('../utils/CacheManager');
-      await cacheManager.initialize();
+      
+      // Use a timeout for CacheManager initialization to prevent hanging
+      const initPromise = cacheManager.initialize();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('CacheManager initialization timeout')), 5000);
+      });
+      
+      await Promise.race([initPromise, timeoutPromise]);
       console.log('CacheManager initialized for tests');
     } catch (error) {
       console.warn('Could not initialize CacheManager in test environment:', error);
@@ -290,10 +297,17 @@ export async function initializeTestEnvironment(): Promise<void> {
  */
 export async function teardownTestEnvironment(): Promise<void> {
   try {
-    // Close CacheManager if it was initialized
+    // Close CacheManager if it was initialized with timeout
     try {
       const { cacheManager } = await import('../utils/CacheManager');
-      await cacheManager.close();
+      
+      // Use a timeout for CacheManager close to prevent hanging
+      const closePromise = cacheManager.close();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('CacheManager close timeout')), 3000);
+      });
+      
+      await Promise.race([closePromise, timeoutPromise]);
       console.log('CacheManager closed');
     } catch (error) {
       console.warn('Could not close CacheManager:', error);

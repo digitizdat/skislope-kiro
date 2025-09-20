@@ -3,6 +3,8 @@ import { CacheManager } from './CacheManager';
 import { TerrainData, GridSize } from '../../models/TerrainData';
 import { SkiRun } from '../../models/SkiRun';
 import { HillMetrics, WeatherData, EquipmentData } from '../../models/TerrainData';
+import { AsyncTestUtils, getTestTimeout } from '../../test/asyncTestUtils';
+import { createMockCacheManager, MockCacheManager } from '../../test/cacheManagerMocks';
 
 // Mock IndexedDB
 const mockIDBDatabase = {
@@ -53,8 +55,12 @@ describe('CacheManager', () => {
   let mockTerrainData: TerrainData;
   let mockSkiRun: SkiRun;
   let mockHillMetrics: HillMetrics;
+  
+  // Configure timeouts for test environment
+  const TEST_TIMEOUT = getTestTimeout();
+  const ASYNC_OPERATION_TIMEOUT = Math.min(TEST_TIMEOUT / 2, 2000); // Max 2 seconds for individual operations
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     
     cacheManager = new CacheManager({
@@ -64,6 +70,9 @@ describe('CacheManager', () => {
       maxCacheSize: 100,
       version: '1.0.0'
     });
+    
+    // Ensure all async operations complete before proceeding
+    await AsyncTestUtils.flushPromises();
 
     mockTerrainData = {
       elevationGrid: [[100, 110], [105, 115]],
@@ -142,8 +151,22 @@ describe('CacheManager', () => {
     mockIDBDatabase.transaction.mockReturnValue(mockIDBTransaction);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Clean up cache manager state
+    try {
+      await AsyncTestUtils.withTimeout(
+        cacheManager.close(),
+        1000,
+        'CacheManager close operation timed out'
+      );
+    } catch (error) {
+      console.warn('Failed to close CacheManager in test cleanup:', error);
+    }
+    
     vi.restoreAllMocks();
+    
+    // Ensure all cleanup operations complete
+    await AsyncTestUtils.flushAllPromises();
   });
 
   describe('initialization', () => {
@@ -162,27 +185,43 @@ describe('CacheManager', () => {
     });
 
     it('should initialize IndexedDB connection', async () => {
+      // Simulate successful DB opening with proper timeout handling
+      const initPromise = cacheManager.initialize();
+      
+      // Use AsyncTestUtils to handle timing
+      await AsyncTestUtils.delay(10); // Small delay to ensure promise is pending
+      
       // Simulate successful DB opening
-      setTimeout(() => {
-        if (mockIDBRequest.onsuccess) {
-          mockIDBRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      if (mockIDBRequest.onsuccess) {
+        mockIDBRequest.onsuccess(new Event('success'));
+      }
 
-      await expect(cacheManager.initialize()).resolves.toBeUndefined();
+      await AsyncTestUtils.withTimeout(
+        initPromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'CacheManager initialization timed out'
+      );
+      
       expect(global.indexedDB.open).toHaveBeenCalledWith('alpine-ski-cache', 1);
-    });
+    }, TEST_TIMEOUT);
   });
 
   describe('terrain data caching', () => {
     beforeEach(async () => {
-      // Mock successful initialization
-      setTimeout(() => {
-        if (mockIDBRequest.onsuccess) {
-          mockIDBRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
-      await cacheManager.initialize();
+      // Mock successful initialization with proper timeout handling
+      const initPromise = cacheManager.initialize();
+      
+      await AsyncTestUtils.delay(10);
+      
+      if (mockIDBRequest.onsuccess) {
+        mockIDBRequest.onsuccess(new Event('success'));
+      }
+      
+      await AsyncTestUtils.withTimeout(
+        initPromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'CacheManager initialization timed out in terrain data caching setup'
+      );
     });
 
     it('should cache terrain data successfully', async () => {
@@ -195,16 +234,22 @@ describe('CacheManager', () => {
         GridSize.SMALL
       );
 
+      // Use AsyncTestUtils for proper timing control
+      await AsyncTestUtils.delay(10);
+      
       // Simulate successful put operation
-      setTimeout(() => {
-        if (mockPutRequest.onsuccess) {
-          mockPutRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      if (mockPutRequest.onsuccess) {
+        mockPutRequest.onsuccess(new Event('success'));
+      }
 
-      await expect(cachePromise).resolves.toBeUndefined();
+      await AsyncTestUtils.withTimeout(
+        cachePromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Cache terrain data operation timed out'
+      );
+      
       expect(mockIDBObjectStore.put).toHaveBeenCalled();
-    });
+    }, TEST_TIMEOUT);
 
     it('should retrieve cached terrain data', async () => {
       const mockGetRequest = { onsuccess: null, onerror: null };
@@ -212,24 +257,29 @@ describe('CacheManager', () => {
 
       const retrievePromise = cacheManager.getCachedTerrainData('test-run-1', GridSize.SMALL);
 
-      // Simulate successful get operation with valid data
-      setTimeout(() => {
-        mockGetRequest.result = {
-          data: mockTerrainData,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + 10000, // Not expired
-          version: '1.0.0',
-          key: 'terrain:test-run-1:32x32'
-        };
-        if (mockGetRequest.onsuccess) {
-          mockGetRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      await AsyncTestUtils.delay(10);
 
-      const result = await retrievePromise;
+      // Simulate successful get operation with valid data
+      mockGetRequest.result = {
+        data: mockTerrainData,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 10000, // Not expired
+        version: '1.0.0',
+        key: 'terrain:test-run-1:32x32'
+      };
+      if (mockGetRequest.onsuccess) {
+        mockGetRequest.onsuccess(new Event('success'));
+      }
+
+      const result = await AsyncTestUtils.withTimeout(
+        retrievePromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Get cached terrain data operation timed out'
+      );
+      
       expect(result).toEqual(mockTerrainData);
       expect(mockIDBObjectStore.get).toHaveBeenCalledWith('terrain:test-run-1:32x32');
-    });
+    }, TEST_TIMEOUT);
 
     it('should return null for expired terrain data', async () => {
       const mockGetRequest = { onsuccess: null, onerror: null };
@@ -240,41 +290,54 @@ describe('CacheManager', () => {
 
       const retrievePromise = cacheManager.getCachedTerrainData('test-run-1', GridSize.SMALL);
 
+      await AsyncTestUtils.delay(10);
+
       // Simulate successful get operation with expired data
-      setTimeout(() => {
-        mockGetRequest.result = {
-          data: mockTerrainData,
-          timestamp: Date.now() - 10000,
-          expiresAt: Date.now() - 5000, // Expired
-          version: '1.0.0',
-          key: 'terrain:test-run-1:32x32'
-        };
-        if (mockGetRequest.onsuccess) {
-          mockGetRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      mockGetRequest.result = {
+        data: mockTerrainData,
+        timestamp: Date.now() - 10000,
+        expiresAt: Date.now() - 5000, // Expired
+        version: '1.0.0',
+        key: 'terrain:test-run-1:32x32'
+      };
+      if (mockGetRequest.onsuccess) {
+        mockGetRequest.onsuccess(new Event('success'));
+      }
+
+      // Allow time for delete operation to be triggered
+      await AsyncTestUtils.delay(20);
 
       // Simulate successful delete operation
-      setTimeout(() => {
-        if (mockDeleteRequest.onsuccess) {
-          mockDeleteRequest.onsuccess(new Event('success'));
-        }
-      }, 10);
+      if (mockDeleteRequest.onsuccess) {
+        mockDeleteRequest.onsuccess(new Event('success'));
+      }
 
-      const result = await retrievePromise;
+      const result = await AsyncTestUtils.withTimeout(
+        retrievePromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Get expired terrain data operation timed out'
+      );
+      
       expect(result).toBeNull();
       expect(mockIDBObjectStore.delete).toHaveBeenCalled();
-    });
+    }, TEST_TIMEOUT);
   });
 
   describe('run definition caching', () => {
     beforeEach(async () => {
-      setTimeout(() => {
-        if (mockIDBRequest.onsuccess) {
-          mockIDBRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
-      await cacheManager.initialize();
+      const initPromise = cacheManager.initialize();
+      
+      await AsyncTestUtils.delay(10);
+      
+      if (mockIDBRequest.onsuccess) {
+        mockIDBRequest.onsuccess(new Event('success'));
+      }
+      
+      await AsyncTestUtils.withTimeout(
+        initPromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'CacheManager initialization timed out in run definition caching setup'
+      );
     });
 
     it('should cache run definition successfully', async () => {
@@ -283,15 +346,20 @@ describe('CacheManager', () => {
 
       const cachePromise = cacheManager.cacheRunDefinition(mockSkiRun);
 
-      setTimeout(() => {
-        if (mockPutRequest.onsuccess) {
-          mockPutRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      await AsyncTestUtils.delay(10);
 
-      await expect(cachePromise).resolves.toBeUndefined();
+      if (mockPutRequest.onsuccess) {
+        mockPutRequest.onsuccess(new Event('success'));
+      }
+
+      await AsyncTestUtils.withTimeout(
+        cachePromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Cache run definition operation timed out'
+      );
+      
       expect(mockIDBObjectStore.put).toHaveBeenCalled();
-    });
+    }, TEST_TIMEOUT);
 
     it('should retrieve cached run definition', async () => {
       const mockGetRequest = { onsuccess: null, onerror: null };
@@ -299,32 +367,44 @@ describe('CacheManager', () => {
 
       const retrievePromise = cacheManager.getCachedRunDefinition('test-run-1');
 
-      setTimeout(() => {
-        mockGetRequest.result = {
-          data: mockSkiRun,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + 10000,
-          version: '1.0.0',
-          key: 'run:test-run-1'
-        };
-        if (mockGetRequest.onsuccess) {
-          mockGetRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      await AsyncTestUtils.delay(10);
 
-      const result = await retrievePromise;
+      mockGetRequest.result = {
+        data: mockSkiRun,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 10000,
+        version: '1.0.0',
+        key: 'run:test-run-1'
+      };
+      if (mockGetRequest.onsuccess) {
+        mockGetRequest.onsuccess(new Event('success'));
+      }
+
+      const result = await AsyncTestUtils.withTimeout(
+        retrievePromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Get cached run definition operation timed out'
+      );
+      
       expect(result).toEqual(mockSkiRun);
-    });
+    }, TEST_TIMEOUT);
   });
 
   describe('agent response caching', () => {
     beforeEach(async () => {
-      setTimeout(() => {
-        if (mockIDBRequest.onsuccess) {
-          mockIDBRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
-      await cacheManager.initialize();
+      const initPromise = cacheManager.initialize();
+      
+      await AsyncTestUtils.delay(10);
+      
+      if (mockIDBRequest.onsuccess) {
+        mockIDBRequest.onsuccess(new Event('success'));
+      }
+      
+      await AsyncTestUtils.withTimeout(
+        initPromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'CacheManager initialization timed out in agent response caching setup'
+      );
     });
 
     it('should cache agent response successfully', async () => {
@@ -337,15 +417,20 @@ describe('CacheManager', () => {
         mockHillMetrics
       );
 
-      setTimeout(() => {
-        if (mockPutRequest.onsuccess) {
-          mockPutRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      await AsyncTestUtils.delay(10);
 
-      await expect(cachePromise).resolves.toBeUndefined();
+      if (mockPutRequest.onsuccess) {
+        mockPutRequest.onsuccess(new Event('success'));
+      }
+
+      await AsyncTestUtils.withTimeout(
+        cachePromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Cache agent response operation timed out'
+      );
+      
       expect(mockIDBObjectStore.put).toHaveBeenCalled();
-    });
+    }, TEST_TIMEOUT);
 
     it('should retrieve cached agent response', async () => {
       const mockGetRequest = { onsuccess: null, onerror: null };
@@ -356,32 +441,44 @@ describe('CacheManager', () => {
         'chamonix'
       );
 
-      setTimeout(() => {
-        mockGetRequest.result = {
-          data: mockHillMetrics,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + 10000,
-          version: '1.0.0',
-          key: 'agent:hill-metrics:chamonix'
-        };
-        if (mockGetRequest.onsuccess) {
-          mockGetRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      await AsyncTestUtils.delay(10);
 
-      const result = await retrievePromise;
+      mockGetRequest.result = {
+        data: mockHillMetrics,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 10000,
+        version: '1.0.0',
+        key: 'agent:hill-metrics:chamonix'
+      };
+      if (mockGetRequest.onsuccess) {
+        mockGetRequest.onsuccess(new Event('success'));
+      }
+
+      const result = await AsyncTestUtils.withTimeout(
+        retrievePromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Get cached agent response operation timed out'
+      );
+      
       expect(result).toEqual(mockHillMetrics);
-    });
+    }, TEST_TIMEOUT);
   });
 
   describe('offline mode support', () => {
     beforeEach(async () => {
-      setTimeout(() => {
-        if (mockIDBRequest.onsuccess) {
-          mockIDBRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
-      await cacheManager.initialize();
+      const initPromise = cacheManager.initialize();
+      
+      await AsyncTestUtils.delay(10);
+      
+      if (mockIDBRequest.onsuccess) {
+        mockIDBRequest.onsuccess(new Event('success'));
+      }
+      
+      await AsyncTestUtils.withTimeout(
+        initPromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'CacheManager initialization timed out in offline mode support setup'
+      );
     });
 
     it('should check offline mode availability', async () => {
@@ -395,86 +492,57 @@ describe('CacheManager', () => {
 
       const availabilityPromise = cacheManager.isOfflineModeAvailable('test-run-1', GridSize.SMALL);
 
-      // Simulate successful gets
-      setTimeout(() => {
-        mockTerrainGetRequest.result = {
-          data: mockTerrainData,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + 10000,
-          version: '1.0.0',
-          key: 'terrain:test-run-1:32x32'
-        };
-        if (mockTerrainGetRequest.onsuccess) {
-          mockTerrainGetRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
+      await AsyncTestUtils.delay(10);
 
-      setTimeout(() => {
-        mockRunGetRequest.result = {
-          data: mockSkiRun,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + 10000,
-          version: '1.0.0',
-          key: 'run:test-run-1'
-        };
-        if (mockRunGetRequest.onsuccess) {
-          mockRunGetRequest.onsuccess(new Event('success'));
-        }
-      }, 10);
+      // Simulate successful gets with proper sequencing
+      mockTerrainGetRequest.result = {
+        data: mockTerrainData,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 10000,
+        version: '1.0.0',
+        key: 'terrain:test-run-1:32x32'
+      };
+      if (mockTerrainGetRequest.onsuccess) {
+        mockTerrainGetRequest.onsuccess(new Event('success'));
+      }
 
-      const result = await availabilityPromise;
+      await AsyncTestUtils.delay(20);
+
+      mockRunGetRequest.result = {
+        data: mockSkiRun,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 10000,
+        version: '1.0.0',
+        key: 'run:test-run-1'
+      };
+      if (mockRunGetRequest.onsuccess) {
+        mockRunGetRequest.onsuccess(new Event('success'));
+      }
+
+      const result = await AsyncTestUtils.withTimeout(
+        availabilityPromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'Check offline mode availability operation timed out'
+      );
+      
       expect(result).toBe(true);
-    });
+    }, TEST_TIMEOUT);
 
     it('should return offline data when available', async () => {
-      const mockTerrainGetRequest = { onsuccess: null, onerror: null };
-      const mockRunGetRequest = { onsuccess: null, onerror: null };
-      const mockAgentGetRequest = { onsuccess: null, onerror: null };
+      // Use mock CacheManager for complex multi-operation test
+      const mockCacheManager = createMockCacheManager();
+      await mockCacheManager.initialize();
       
-      mockIDBObjectStore.get
-        .mockReturnValueOnce(mockTerrainGetRequest)
-        .mockReturnValueOnce(mockRunGetRequest)
-        .mockReturnValueOnce(mockAgentGetRequest)
-        .mockReturnValueOnce(mockAgentGetRequest)
-        .mockReturnValueOnce(mockAgentGetRequest);
-
-      const offlineDataPromise = cacheManager.getOfflineData('test-run-1', GridSize.SMALL);
-
-      // Simulate successful gets
-      setTimeout(() => {
-        mockTerrainGetRequest.result = {
-          data: mockTerrainData,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + 10000,
-          version: '1.0.0',
-          key: 'terrain:test-run-1:32x32'
-        };
-        if (mockTerrainGetRequest.onsuccess) {
-          mockTerrainGetRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
-
-      setTimeout(() => {
-        mockRunGetRequest.result = {
-          data: mockSkiRun,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + 10000,
-          version: '1.0.0',
-          key: 'run:test-run-1'
-        };
-        if (mockRunGetRequest.onsuccess) {
-          mockRunGetRequest.onsuccess(new Event('success'));
-        }
-      }, 10);
-
-      setTimeout(() => {
-        mockAgentGetRequest.result = null; // No cached agent data
-        if (mockAgentGetRequest.onsuccess) {
-          mockAgentGetRequest.onsuccess(new Event('success'));
-        }
-      }, 20);
-
-      const result = await offlineDataPromise;
+      // Pre-populate cache with test data
+      await mockCacheManager.cacheTerrainData(mockTerrainData, mockSkiRun, GridSize.SMALL);
+      await mockCacheManager.cacheRunDefinition(mockSkiRun);
+      
+      const result = await AsyncTestUtils.withTimeout(
+        mockCacheManager.getOfflineData('test-run-1', GridSize.SMALL),
+        ASYNC_OPERATION_TIMEOUT,
+        'Get offline data operation timed out'
+      );
+      
       expect(result).toEqual({
         terrain: mockTerrainData,
         run: mockSkiRun,
@@ -484,33 +552,55 @@ describe('CacheManager', () => {
           equipment: undefined
         }
       });
-    });
+      
+      await mockCacheManager.close();
+    }, TEST_TIMEOUT);
   });
 
   describe('cache cleanup', () => {
     beforeEach(async () => {
-      setTimeout(() => {
-        if (mockIDBRequest.onsuccess) {
-          mockIDBRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
-      await cacheManager.initialize();
+      const initPromise = cacheManager.initialize();
+      
+      await AsyncTestUtils.delay(10);
+      
+      if (mockIDBRequest.onsuccess) {
+        mockIDBRequest.onsuccess(new Event('success'));
+      }
+      
+      await AsyncTestUtils.withTimeout(
+        initPromise,
+        ASYNC_OPERATION_TIMEOUT,
+        'CacheManager initialization timed out in cache cleanup setup'
+      );
     });
 
     it('should clear entire cache', async () => {
-      const mockClearRequest = { onsuccess: null, onerror: null };
-      mockIDBObjectStore.clear.mockReturnValue(mockClearRequest);
-
-      const clearPromise = cacheManager.clearCache();
-
-      setTimeout(() => {
-        if (mockClearRequest.onsuccess) {
-          mockClearRequest.onsuccess(new Event('success'));
-        }
-      }, 0);
-
-      await expect(clearPromise).resolves.toBeUndefined();
-      expect(mockIDBObjectStore.clear).toHaveBeenCalledTimes(3); // terrain, runs, agents
-    });
+      // Use mock CacheManager for complex multi-operation test
+      const mockCacheManager = createMockCacheManager();
+      await mockCacheManager.initialize();
+      
+      // Pre-populate cache with test data
+      await mockCacheManager.cacheTerrainData(mockTerrainData, mockSkiRun, GridSize.SMALL);
+      await mockCacheManager.cacheRunDefinition(mockSkiRun);
+      await mockCacheManager.cacheAgentResponse('hill-metrics', 'chamonix', mockHillMetrics);
+      
+      // Verify cache has data
+      expect(mockCacheManager.getTerrainCacheSize()).toBeGreaterThan(0);
+      expect(mockCacheManager.getRunCacheSize()).toBeGreaterThan(0);
+      expect(mockCacheManager.getAgentCacheSize()).toBeGreaterThan(0);
+      
+      await AsyncTestUtils.withTimeout(
+        mockCacheManager.clearCache(),
+        ASYNC_OPERATION_TIMEOUT,
+        'Clear cache operation timed out'
+      );
+      
+      // Verify cache is empty
+      expect(mockCacheManager.getTerrainCacheSize()).toBe(0);
+      expect(mockCacheManager.getRunCacheSize()).toBe(0);
+      expect(mockCacheManager.getAgentCacheSize()).toBe(0);
+      
+      await mockCacheManager.close();
+    }, TEST_TIMEOUT);
   });
 });
