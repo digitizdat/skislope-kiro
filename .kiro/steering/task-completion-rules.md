@@ -16,7 +16,14 @@ If precommit checks are failing, the changes cannot be committed to the reposito
 
 Before marking any task as "completed", the following MUST be verified:
 
-#### 1. Precommit Checks Pass ✅
+#### 1. Stage Files for Commit ✅
+```bash
+git add .
+```
+
+**CRITICAL**: Precommit checks are only triggered when files are staged for commit. If no files are staged, the checks will be skipped with messages like "(skip) no matching staged files".
+
+#### 2. Precommit Checks Pass ✅
 ```bash
 uv run npx lefthook run pre-commit
 ```
@@ -62,9 +69,12 @@ npm run type-check
 When working on any task:
 
 1. **During Development**: Run checks frequently to catch issues early
-2. **Before Marking Complete**: Run full precommit check suite
+2. **Before Marking Complete**: 
+   - Stage all changes: `git add .`
+   - Run full precommit check suite: `uv run npx lefthook run pre-commit`
 3. **If Checks Fail**: 
    - Fix all issues
+   - Re-stage files: `git add .`
    - Re-run precommit checks
    - Only mark complete when ALL checks pass
 4. **Task Status Updates**:
@@ -72,6 +82,10 @@ When working on any task:
    - `completed` → Only when precommit checks are clean
 
 ### Common Precommit Issues and Solutions
+
+#### Staging Issues
+- **Problem**: Checks show "(skip) no matching staged files"
+- **Solution**: Run `git add .` to stage files before running precommit checks
 
 #### Dependency Issues
 - **Problem**: Virtual environment not activated
@@ -93,10 +107,11 @@ When working on any task:
 
 If precommit checks are blocking critical work:
 
-1. **Identify Root Cause**: Run individual check commands to isolate the issue
-2. **Fix Systematically**: Address one category of errors at a time
-3. **Document Workarounds**: If temporary disabling is needed, document why and create follow-up tasks
-4. **Never Skip**: Avoid committing with failing checks - this breaks the build for everyone
+1. **Verify Files Are Staged**: Ensure `git add .` was run - checks won't run on unstaged files
+2. **Identify Root Cause**: Run individual check commands to isolate the issue
+3. **Fix Systematically**: Address one category of errors at a time
+4. **Document Workarounds**: If temporary disabling is needed, document why and create follow-up tasks
+5. **Never Skip**: Avoid committing with failing checks - this breaks the build for everyone
 
 ### Enforcement
 
