@@ -42,7 +42,7 @@
   - Create utilities for controlling timing and execution order in async tests
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 8. Fix TerrainService test failures
+- [x] 8. Fix TerrainService test failures
   - Update TerrainService tests to use proper CacheManager mocking
   - Fix cache initialization issues in terrain data processing tests
   - Ensure proper async operation handling in terrain loading tests

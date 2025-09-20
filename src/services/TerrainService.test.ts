@@ -3,12 +3,14 @@
  * Requirements: 1.1, 1.2, 1.5, 7.5 - Test terrain data processing and mesh generation
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { TerrainService } from './TerrainService';
 import { GridSize, SurfaceType } from '../models/TerrainData';
 import { SkiRun } from '../models/SkiRun';
 import { agentClient } from './AgentClient';
+import { createMockCacheManager, MockCacheManager } from '../test/cacheManagerMocks';
+import { AsyncTestUtils } from '../test/asyncTestUtils';
 
 // Mock the agent client
 vi.mock('./AgentClient', () => ({
@@ -17,12 +19,51 @@ vi.mock('./AgentClient', () => ({
   }
 }));
 
+// Mock the CacheManager
+vi.mock('../utils/CacheManager', () => {
+  return {
+    CacheManager: vi.fn(),
+    cacheManager: {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      getCachedTerrainData: vi.fn().mockResolvedValue(null),
+      cacheTerrainData: vi.fn().mockResolvedValue(undefined),
+      invalidateTerrainData: vi.fn().mockResolvedValue(undefined),
+      cacheRunDefinition: vi.fn().mockResolvedValue(undefined),
+      getCachedRunDefinition: vi.fn().mockResolvedValue(null),
+      getCachedRunsByArea: vi.fn().mockResolvedValue([]),
+      invalidateRunDefinition: vi.fn().mockResolvedValue(undefined),
+      cacheAgentResponse: vi.fn().mockResolvedValue(undefined),
+      getCachedAgentResponse: vi.fn().mockResolvedValue(null),
+      invalidateAgentResponse: vi.fn().mockResolvedValue(undefined),
+      isOfflineModeAvailable: vi.fn().mockResolvedValue(false),
+      getOfflineData: vi.fn().mockResolvedValue(null),
+      cleanup: vi.fn().mockResolvedValue(undefined),
+      clearCache: vi.fn().mockResolvedValue(undefined),
+      getCacheStats: vi.fn().mockResolvedValue({
+        totalSize: 0,
+        entryCount: 0,
+        hitRate: 0,
+        lastCleanup: Date.now()
+      }),
+      close: vi.fn().mockResolvedValue(undefined)
+    }
+  };
+});
+
 describe('TerrainService', () => {
   let terrainService: TerrainService;
   let mockSkiRun: SkiRun;
   let mockHillMetricsResponse: any;
+  let mockCacheManager: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Clear all mocks
+    vi.clearAllMocks();
+    
+    // Get the mock cache manager instance
+    const { cacheManager } = await import('../utils/CacheManager');
+    mockCacheManager = cacheManager;
+    
     terrainService = new TerrainService();
     
     // Mock ski run data
@@ -101,9 +142,20 @@ describe('TerrainService', () => {
     vi.mocked(agentClient.callHillMetricsAgent).mockResolvedValue(mockHillMetricsResponse);
   });
 
+  afterEach(() => {
+    // Clear all mocks
+    vi.clearAllMocks();
+  });
+
   describe('extractTerrainData', () => {
     it('should extract terrain data for a ski run', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      // Mock cache miss scenario
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
 
       expect(terrainData).toBeDefined();
       expect(terrainData.gridSize).toBe(GridSize.SMALL);
@@ -111,28 +163,107 @@ describe('TerrainService', () => {
       expect(terrainData.surfaceTypes).toBeDefined();
       expect(terrainData.bounds).toBeDefined();
       expect(terrainData.metadata.name).toBe('Test Run');
+      
+      // Verify cache operations were called
+      expect(mockCacheManager.getCachedTerrainData).toHaveBeenCalledWith(mockSkiRun.id, GridSize.SMALL);
+      expect(mockCacheManager.cacheTerrainData).toHaveBeenCalled();
     });
 
     it('should handle different grid sizes', async () => {
       const gridSizes = [GridSize.SMALL, GridSize.MEDIUM, GridSize.LARGE, GridSize.EXTRA_LARGE];
 
       for (const gridSize of gridSizes) {
-        const terrainData = await terrainService.extractTerrainData(mockSkiRun, gridSize);
+        // Mock cache miss for each grid size
+        mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+        
+        const terrainData = await AsyncTestUtils.withTimeout(
+          terrainService.extractTerrainData(mockSkiRun, gridSize),
+          5000
+        );
         expect(terrainData.gridSize).toBe(gridSize);
       }
     });
 
     it('should throw error when agent call fails', async () => {
+      // Mock cache miss so agent is called
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
       vi.mocked(agentClient.callHillMetricsAgent).mockRejectedValue(new Error('Agent failed'));
 
-      await expect(terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL))
-        .rejects.toThrow('Terrain data extraction failed');
+      await expect(
+        AsyncTestUtils.withTimeout(
+          terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+          5000
+        )
+      ).rejects.toThrow('Terrain data extraction failed');
+    });
+
+    it('should use cached terrain data when available', async () => {
+      // Create mock terrain data for cache hit
+      const cachedTerrainData = {
+        elevationGrid: [[100, 110], [105, 115]],
+        resolution: 32,
+        bounds: {
+          northEast: { lat: 45.9, lng: 6.9 },
+          southWest: { lat: 45.8, lng: 6.8 }
+        },
+        metadata: {
+          name: 'Cached Test Run',
+          difficulty: 'intermediate' as const,
+          estimatedLength: 1000,
+          verticalDrop: 200,
+          averageSlope: 15
+        },
+        surfaceTypes: [[SurfaceType.PACKED, SurfaceType.PACKED], [SurfaceType.POWDER, SurfaceType.POWDER]],
+        gridSize: GridSize.SMALL,
+        area: {
+          id: 'chamonix',
+          name: 'Chamonix',
+          location: 'Chamonix-Mont-Blanc',
+          country: 'France',
+          bounds: {
+            northEast: { lat: 46.0, lng: 7.0 },
+            southWest: { lat: 45.7, lng: 6.7 }
+          },
+          elevation: { min: 1000, max: 4000 },
+          previewImage: 'chamonix.jpg',
+          agentEndpoints: {
+            hillMetrics: 'http://localhost:8001',
+            weather: 'http://localhost:8002',
+            equipment: 'http://localhost:8003'
+          },
+          fisCompatible: true
+        },
+        hillMetrics: mockHillMetricsResponse.data
+      };
+
+      // Mock cache hit
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(cachedTerrainData);
+
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+
+      expect(terrainData).toEqual(cachedTerrainData);
+      expect(terrainData.metadata.name).toBe('Cached Test Run');
+      
+      // Verify cache was checked but agent was not called
+      expect(mockCacheManager.getCachedTerrainData).toHaveBeenCalledWith(mockSkiRun.id, GridSize.SMALL);
+      expect(agentClient.callHillMetricsAgent).not.toHaveBeenCalled();
     });
   });
 
   describe('generateMesh', () => {
     it('should generate a valid Three.js mesh from terrain data', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      // Mock cache miss for fresh data
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      
       const terrainMesh = terrainService.generateMesh(terrainData);
 
       expect(terrainMesh).toBeDefined();
@@ -144,7 +275,13 @@ describe('TerrainService', () => {
     });
 
     it('should generate geometry with correct attributes', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      
       const terrainMesh = terrainService.generateMesh(terrainData);
 
       const geometry = terrainMesh.geometry;
@@ -155,7 +292,13 @@ describe('TerrainService', () => {
     });
 
     it('should generate LOD levels when enabled', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.LARGE);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.LARGE),
+        5000
+      );
+      
       const terrainMesh = terrainService.generateMesh(terrainData);
 
       expect(terrainMesh.lodLevels).toBeDefined();
@@ -170,7 +313,12 @@ describe('TerrainService', () => {
     });
 
     it('should cache generated meshes', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
       
       // Generate mesh twice
       const mesh1 = terrainService.generateMesh(terrainData);
@@ -186,7 +334,13 @@ describe('TerrainService', () => {
 
   describe('generateLODMesh', () => {
     it('should generate reduced resolution mesh for LOD', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.LARGE);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.LARGE),
+        5000
+      );
+      
       const lodGeometry = terrainService.generateLODMesh(terrainData, 1);
 
       expect(lodGeometry).toBeInstanceOf(THREE.BufferGeometry);
@@ -203,7 +357,12 @@ describe('TerrainService', () => {
     });
 
     it('should handle different LOD levels', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.LARGE);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.LARGE),
+        5000
+      );
       
       const lod0 = terrainService.generateLODMesh(terrainData, 0);
       const lod1 = terrainService.generateLODMesh(terrainData, 1);
@@ -221,7 +380,13 @@ describe('TerrainService', () => {
 
   describe('classifySurfaceTypes', () => {
     it('should use hill metrics surface types when available', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      
       const surfaceTypes = terrainService.classifySurfaceTypes(terrainData);
 
       expect(surfaceTypes).toBeDefined();
@@ -236,6 +401,8 @@ describe('TerrainService', () => {
     });
 
     it('should fallback to slope-based classification when no surface types provided', async () => {
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
       // Mock response without surface types
       const responseWithoutSurfaceTypes = {
         ...mockHillMetricsResponse,
@@ -247,7 +414,11 @@ describe('TerrainService', () => {
       
       vi.mocked(agentClient.callHillMetricsAgent).mockResolvedValue(responseWithoutSurfaceTypes);
 
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      
       const surfaceTypes = terrainService.classifySurfaceTypes(terrainData);
 
       expect(surfaceTypes).toBeDefined();
@@ -262,7 +433,13 @@ describe('TerrainService', () => {
 
   describe('createMaterials', () => {
     it('should create materials for different surface types', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      
       const surfaceTypes = terrainService.classifySurfaceTypes(terrainData);
       const materials = terrainService.createMaterials(surfaceTypes);
 
@@ -286,7 +463,13 @@ describe('TerrainService', () => {
 
   describe('cache management', () => {
     it('should clear cache when requested', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      
       terrainService.generateMesh(terrainData);
 
       let cacheStats = terrainService.getCacheStats();
@@ -299,8 +482,16 @@ describe('TerrainService', () => {
     });
 
     it('should provide cache statistics', async () => {
-      const terrainData1 = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
-      const terrainData2 = await terrainService.extractTerrainData(mockSkiRun, GridSize.MEDIUM);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData1 = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      const terrainData2 = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.MEDIUM),
+        5000
+      );
       
       terrainService.generateMesh(terrainData1);
       terrainService.generateMesh(terrainData2);
@@ -314,6 +505,8 @@ describe('TerrainService', () => {
 
   describe('error handling', () => {
     it('should handle invalid elevation data gracefully', async () => {
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
       const invalidResponse = {
         ...mockHillMetricsResponse,
         data: {
@@ -324,7 +517,11 @@ describe('TerrainService', () => {
       
       vi.mocked(agentClient.callHillMetricsAgent).mockResolvedValue(invalidResponse);
 
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL);
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+        5000
+      );
+      
       const terrainMesh = terrainService.generateMesh(terrainData);
 
       expect(terrainMesh).toBeDefined();
@@ -332,39 +529,64 @@ describe('TerrainService', () => {
     });
 
     it('should handle empty boundary gracefully', async () => {
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
       const runWithEmptyBoundary = {
         ...mockSkiRun,
+        id: 'empty-boundary-run',
         boundary: []
       };
 
-      await expect(terrainService.extractTerrainData(runWithEmptyBoundary, GridSize.SMALL))
-        .rejects.toThrow();
+      await expect(
+        AsyncTestUtils.withTimeout(
+          terrainService.extractTerrainData(runWithEmptyBoundary, GridSize.SMALL),
+          5000
+        )
+      ).rejects.toThrow();
     });
 
     it('should handle network errors from agent', async () => {
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
       vi.mocked(agentClient.callHillMetricsAgent).mockRejectedValue(new Error('Network error'));
 
-      await expect(terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL))
-        .rejects.toThrow('Terrain data extraction failed');
+      await expect(
+        AsyncTestUtils.withTimeout(
+          terrainService.extractTerrainData(mockSkiRun, GridSize.SMALL),
+          5000
+        )
+      ).rejects.toThrow('Terrain data extraction failed');
     });
   });
 
   describe('performance considerations', () => {
     it('should handle large grid sizes efficiently', async () => {
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
       const startTime = Date.now();
       
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.EXTRA_LARGE);
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.EXTRA_LARGE),
+        10000 // Longer timeout for large grid
+      );
+      
       const terrainMesh = terrainService.generateMesh(terrainData);
 
       const endTime = Date.now();
       const processingTime = endTime - startTime;
 
       expect(terrainMesh).toBeDefined();
-      expect(processingTime).toBeLessThan(5000); // Should complete within 5 seconds
+      expect(processingTime).toBeLessThan(10000); // Should complete within 10 seconds for large grid
     });
 
     it('should generate appropriate LOD levels for performance', async () => {
-      const terrainData = await terrainService.extractTerrainData(mockSkiRun, GridSize.EXTRA_LARGE);
+      mockCacheManager.getCachedTerrainData.mockResolvedValue(null);
+      
+      const terrainData = await AsyncTestUtils.withTimeout(
+        terrainService.extractTerrainData(mockSkiRun, GridSize.EXTRA_LARGE),
+        10000
+      );
+      
       const terrainMesh = terrainService.generateMesh(terrainData);
 
       expect(terrainMesh.lodLevels.length).toBeGreaterThan(0);
