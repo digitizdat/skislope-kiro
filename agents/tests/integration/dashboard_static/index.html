@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Test Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="dashboard-header">
+            <h1>Integration Test Dashboard</h1>
+            <div class="header-controls">
+                <button id="refresh-btn" class="btn btn-primary">Refresh</button>
+                <button id="auto-refresh-btn" class="btn btn-secondary">Auto Refresh: OFF</button>
+                <span id="last-updated" class="last-updated"></span>
+            </div>
+        </header>
+        
+        <div class="dashboard-content">
+            <!-- Summary Cards -->
+            <section class="summary-section">
+                <div class="summary-cards">
+                    <div class="summary-card" id="total-tests-card">
+                        <div class="card-icon">📊</div>
+                        <div class="card-content">
+                            <div class="card-number" id="total-tests">-</div>
+                            <div class="card-label">Total Tests</div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card" id="success-rate-card">
+                        <div class="card-icon">✅</div>
+                        <div class="card-content">
+                            <div class="card-number" id="success-rate">-</div>
+                            <div class="card-label">Success Rate</div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card" id="duration-card">
+                        <div class="card-icon">⏱️</div>
+                        <div class="card-content">
+                            <div class="card-number" id="duration">-</div>
+                            <div class="card-label">Duration</div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card" id="trend-card">
+                        <div class="card-icon">📈</div>
+                        <div class="card-content">
+                            <div class="card-number" id="trend">-</div>
+                            <div class="card-label">Trend</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <h3>Success Rate Trend</h3>
+                    <canvas id="success-trend-chart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Test Duration Trend</h3>
+                    <canvas id="duration-trend-chart"></canvas>
+                </div>
+            </section>
+            
+            <!-- Categories Section -->
+            <section class="categories-section">
+                <h3>Test Categories</h3>
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Categories will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <!-- Agent Health Section -->
+            <section class="agent-health-section">
+                <h3>Agent Health</h3>
+                <div class="agent-grid" id="agent-grid">
+                    <!-- Agent health will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <!-- Environment Issues Section -->
+            <section class="environment-section" id="environment-section" style="display: none;">
+                <h3>Environment Issues</h3>
+                <div class="issues-list" id="issues-list">
+                    <!-- Issues will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <!-- Recent Tests Section -->
+            <section class="recent-tests-section">
+                <h3>Recent Test Results</h3>
+                <div class="test-history" id="test-history">
+                    <!-- Test history will be populated by JavaScript -->
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <script src="dashboard.js"></script>
+</body>
+</html>

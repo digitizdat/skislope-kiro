@@ -27,6 +27,9 @@ from .api_contract_validator import APIContractValidator
 from .environment_validator import EnvironmentValidator
 from .communication_validator import CommunicationValidator
 from .workflow_simulator import WorkflowSimulator, WorkflowType
+from .report_generator import ReportGenerator
+from .dashboard import TestResultsDashboard
+from .performance_tracker import PerformanceTracker
 
 
 logger = structlog.get_logger(__name__)
@@ -88,6 +91,11 @@ class IntegrationTestOrchestrator:
         self.comm_validator: Optional[CommunicationValidator] = None
         self.workflow_simulator: Optional[WorkflowSimulator] = None
         
+        # Reporting and monitoring components
+        self.report_generator: Optional[ReportGenerator] = None
+        self.dashboard: Optional[TestResultsDashboard] = None
+        self.performance_tracker: Optional[PerformanceTracker] = None
+        
         # Execution state
         self.execution_context: Optional[ExecutionContext] = None
         self.results: Optional[TestResults] = None
@@ -136,6 +144,14 @@ class IntegrationTestOrchestrator:
         )
         await self.workflow_simulator.__aenter__()
         
+        # Initialize reporting components
+        self.report_generator = ReportGenerator(self.config)
+        self.dashboard = TestResultsDashboard(self.config)
+        self.performance_tracker = PerformanceTracker(
+            sampling_interval=1.0,
+            max_samples=1000
+        )
+        
         self.logger.info("Test components initialized successfully")
     
     async def _cleanup_components(self) -> None:
@@ -155,6 +171,13 @@ class IntegrationTestOrchestrator:
         
         if self.agent_manager:
             cleanup_tasks.append(self.agent_manager.__aexit__(None, None, None))
+        
+        # Clean up reporting components
+        if self.dashboard:
+            self.dashboard.stop_server()
+        
+        if self.performance_tracker and self.performance_tracker.is_tracking:
+            self.performance_tracker.stop_tracking()
         
         if cleanup_tasks:
             await asyncio.gather(*cleanup_tasks, return_exceptions=True)
@@ -336,8 +359,17 @@ class IntegrationTestOrchestrator:
             # Finalize results
             self.results.finalize()
             
-            # Save results
+            # Add performance metrics from tracker
+            if self.performance_tracker:
+                self.results.performance_metrics = self.performance_tracker.create_performance_metrics()
+            
+            # Update dashboard with results
+            if self.dashboard:
+                self.dashboard.add_test_results(self.results)
+            
+            # Save results and generate reports
             await self._save_results()
+            await self._generate_reports()
             
             self.logger.info(
                 f"Test execution completed",
@@ -354,6 +386,10 @@ class IntegrationTestOrchestrator:
     async def _pre_execution_setup(self) -> None:
         """Perform pre-execution setup."""
         self.logger.info("Performing pre-execution setup")
+        
+        # Start performance tracking
+        if self.performance_tracker:
+            self.performance_tracker.start_phase("setup")
         
         # Start agents if needed
         if any(cat in [TestCategory.API_CONTRACTS, TestCategory.COMMUNICATION, TestCategory.WORKFLOWS] 
@@ -379,12 +415,22 @@ class IntegrationTestOrchestrator:
                 if not ready:
                     self.logger.warning("Not all agents became ready within timeout")
         
+        # End setup phase and start execution phase
+        if self.performance_tracker:
+            self.performance_tracker.end_phase()
+            self.performance_tracker.start_phase("execution")
+        
         # Collect initial system state
         await self._collect_system_diagnostics()
     
     async def _post_execution_cleanup(self) -> None:
         """Perform post-execution cleanup."""
         self.logger.info("Performing post-execution cleanup")
+        
+        # End execution phase and start teardown phase
+        if self.performance_tracker:
+            self.performance_tracker.end_phase()
+            self.performance_tracker.start_phase("teardown")
         
         # Collect final system state
         await self._collect_system_diagnostics()
@@ -394,6 +440,10 @@ class IntegrationTestOrchestrator:
             failed_to_stop = await self.agent_manager.stop_all_agents()
             if failed_to_stop:
                 self.logger.warning(f"Some agents failed to stop cleanly: {failed_to_stop}")
+        
+        # End teardown phase
+        if self.performance_tracker:
+            self.performance_tracker.end_phase()
     
     async def _execute_parallel(self, plan: ExecutionPlan) -> None:
         """Execute test categories in parallel."""
@@ -754,6 +804,185 @@ class IntegrationTestOrchestrator:
                 test_results.append(test_result)
         
         return test_results
+    
+    async def _save_results(self) -> None:
+        """Save test results to files."""
+        if not self.results or not self.execution_context:
+            return
+        
+        try:
+            # Save raw results as JSON
+            results_file = self.execution_context.artifacts_dir / "test_results.json"
+            results_data = self.results.to_dict()
+            
+            with open(results_file, 'w') as f:
+                json.dump(results_data, f, indent=2, default=str)
+            
+            self.logger.info(f"Test results saved to {results_file}")
+            
+            # Save summary
+            summary_file = self.execution_context.artifacts_dir / "test_summary.json"
+            summary_data = {
+                "execution_id": self.execution_context.execution_id,
+                "summary": self.results.summary.to_dict(),
+                "categories": {
+                    cat.value: results.to_dict() 
+                    for cat, results in self.results.categories.items()
+                },
+                "agent_health_summary": {
+                    agent.name: agent.status 
+                    for agent in self.results.agent_health
+                },
+                "environment_issues_count": len(self.results.environment_issues),
+                "performance_summary": (
+                    self.results.performance_metrics.__dict__ 
+                    if self.results.performance_metrics else None
+                )
+            }
+            
+            with open(summary_file, 'w') as f:
+                json.dump(summary_data, f, indent=2, default=str)
+            
+            self.logger.info(f"Test summary saved to {summary_file}")
+            
+            # Save failed tests separately for easy access
+            failed_tests = self.results.get_failed_tests()
+            if failed_tests:
+                failed_file = self.execution_context.artifacts_dir / "failed_tests.json"
+                failed_data = [test.to_dict() for test in failed_tests]
+                
+                with open(failed_file, 'w') as f:
+                    json.dump(failed_data, f, indent=2, default=str)
+                
+                self.logger.info(f"Failed tests saved to {failed_file}")
+        
+        except Exception as e:
+            self.logger.error(f"Failed to save test results: {e}", exc_info=True)
+    
+    async def _generate_reports(self) -> None:
+        """Generate test reports in multiple formats."""
+        if not self.results or not self.execution_context or not self.report_generator:
+            return
+        
+        try:
+            report_formats = ["json", "html", "junit", "markdown"]
+            
+            report_paths = self.report_generator.generate_multiple_formats(
+                results=self.results,
+                formats=report_formats,
+                output_dir=self.execution_context.artifacts_dir,
+                include_diagnostics=True
+            )
+            
+            self.logger.info(
+                f"Generated reports in {len(report_paths)} formats",
+                formats=list(report_paths.keys()),
+                paths=[str(path) for path in report_paths.values()]
+            )
+            
+            # Store report paths in execution context for later access
+            if not hasattr(self.execution_context, 'report_paths'):
+                self.execution_context.report_paths = {}
+            self.execution_context.report_paths.update(report_paths)
+        
+        except Exception as e:
+            self.logger.error(f"Failed to generate reports: {e}", exc_info=True)
+    
+    async def _collect_system_diagnostics(self) -> None:
+        """Collect system diagnostic information."""
+        if not self.results:
+            return
+        
+        try:
+            diagnostics = {}
+            
+            # Collect agent health if available
+            if self.agent_manager:
+                agent_health = await self.agent_manager.get_all_agent_health()
+                self.results.agent_health = agent_health
+                diagnostics["agent_health_collected"] = len(agent_health)
+            
+            # Collect performance snapshot if available
+            if self.performance_tracker:
+                current_metrics = self.performance_tracker.get_current_metrics()
+                if current_metrics:
+                    diagnostics["performance_snapshot"] = {
+                        "cpu_percent": current_metrics.cpu_percent,
+                        "memory_percent": current_metrics.memory_percent,
+                        "memory_used_mb": current_metrics.memory_used_mb,
+                        "timestamp": current_metrics.timestamp.isoformat()
+                    }
+            
+            # Add system information
+            import platform
+            import sys
+            
+            diagnostics["system_info"] = {
+                "platform": platform.platform(),
+                "python_version": sys.version,
+                "architecture": platform.architecture(),
+                "processor": platform.processor(),
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Update results diagnostics
+            self.results.diagnostics.update(diagnostics)
+        
+        except Exception as e:
+            self.logger.error(f"Failed to collect system diagnostics: {e}", exc_info=True)
+    
+    def start_dashboard(self, port: int = 8080, open_browser: bool = True) -> Optional[str]:
+        """
+        Start the test results dashboard.
+        
+        Args:
+            port: Port to run dashboard on
+            open_browser: Whether to open browser automatically
+            
+        Returns:
+            Dashboard URL or None if failed
+        """
+        if not self.dashboard:
+            self.logger.warning("Dashboard not initialized")
+            return None
+        
+        try:
+            url = self.dashboard.start_server(port=port, open_browser=open_browser)
+            self.logger.info(f"Dashboard started at {url}")
+            return url
+        except Exception as e:
+            self.logger.error(f"Failed to start dashboard: {e}")
+            return None
+    
+    def stop_dashboard(self) -> None:
+        """Stop the test results dashboard."""
+        if self.dashboard:
+            self.dashboard.stop_server()
+            self.logger.info("Dashboard stopped")
+    
+    def get_performance_summary(self) -> Dict[str, Any]:
+        """
+        Get performance summary from tracker.
+        
+        Returns:
+            Performance summary data
+        """
+        if self.performance_tracker:
+            return self.performance_tracker.get_performance_summary()
+        return {"message": "Performance tracking not available"}
+    
+    def export_dashboard_data(self, output_path: Path) -> None:
+        """
+        Export dashboard data to file.
+        
+        Args:
+            output_path: Path to export data to
+        """
+        if self.dashboard:
+            self.dashboard.export_data(output_path)
+            self.logger.info(f"Dashboard data exported to {output_path}")
+        else:
+            self.logger.warning("Dashboard not available for data export")
     
     async def _run_performance_tests(self, context: ExecutionContext) -> List[TestResult]:
         """Run performance validation tests."""
