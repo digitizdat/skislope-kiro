@@ -94,19 +94,29 @@ describe('Browser API Integration Tests', () => {
       expect(typeof xhr.abort).toBe('function');
     });
 
-    it('should handle XMLHttpRequest lifecycle', (done) => {
+    it('should handle XMLHttpRequest lifecycle', async () => {
       const xhr = new globalThis.XMLHttpRequest();
       
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) {
-          expect(xhr.status).toBe(200);
-          expect(xhr.statusText).toBe('OK');
-          done();
-        }
-      };
+      const promise = new Promise<void>((resolve, reject) => {
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState === 4) {
+            try {
+              expect(xhr.status).toBe(200);
+              expect(xhr.statusText).toBe('OK');
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('XMLHttpRequest failed'));
+      });
       
       xhr.open('GET', 'https://example.com/api');
       xhr.send();
+      
+      await promise;
     });
   });
 
@@ -238,20 +248,28 @@ describe('Browser API Integration Tests', () => {
       expect(typeof globalThis.indexedDB.open).toBe('function');
     });
 
-    it('should open IndexedDB databases', (done) => {
+    it('should open IndexedDB databases', async () => {
       const request = globalThis.indexedDB.open('test-db', 1);
       
-      request.onsuccess = () => {
-        const db = request.result;
-        expect(db).toBeDefined();
-        expect(db.name).toBe('test-db');
-        db.close();
-        done();
-      };
+      const promise = new Promise<void>((resolve, reject) => {
+        request.onsuccess = () => {
+          try {
+            const db = request.result;
+            expect(db).toBeDefined();
+            expect(db.name).toBe('test-db');
+            db.close();
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        };
+        
+        request.onerror = () => {
+          reject(new Error('Failed to open IndexedDB'));
+        };
+      });
       
-      request.onerror = () => {
-        done(new Error('Failed to open IndexedDB'));
-      };
+      await promise;
     });
   });
 

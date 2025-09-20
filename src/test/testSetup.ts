@@ -139,38 +139,46 @@ export function setupWebGLEnvironment(): void {
     testState.originalAPIs.set('HTMLCanvasElement', window.HTMLCanvasElement);
   }
   
-  // Create mock canvas element
-  const mockCanvas = {
-    width: 800,
-    height: 600,
-    getContext: vi.fn((contextType: string) => {
-      if (contextType === 'webgl' || contextType === 'experimental-webgl') {
-        if (!testState.webglContext) {
-          testState.webglContext = createWebGLContextMock();
-        }
-        return testState.webglContext;
-      }
-      return null;
-    }),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    getBoundingClientRect: vi.fn(() => ({
-      left: 0,
-      top: 0,
+  // Create mock canvas element factory
+  const createMockCanvas = () => {
+    const canvas = {
       width: 800,
       height: 600,
-      right: 800,
-      bottom: 600,
-      x: 0,
-      y: 0,
-      toJSON: () => ({})
-    })),
-    style: {},
-    clientWidth: 800,
-    clientHeight: 600,
-    offsetWidth: 800,
-    offsetHeight: 600,
-  } as unknown as HTMLCanvasElement;
+      getContext: vi.fn((contextType: string) => {
+        if (contextType === 'webgl' || contextType === 'experimental-webgl') {
+          if (!testState.webglContext) {
+            testState.webglContext = createWebGLContextMock();
+          }
+          // Always set the canvas property to point back to this specific canvas
+          (testState.webglContext as any).canvas = canvas;
+          return testState.webglContext;
+        }
+        return null;
+      }),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      getBoundingClientRect: vi.fn(() => ({
+        left: 0,
+        top: 0,
+        width: 800,
+        height: 600,
+        right: 800,
+        bottom: 600,
+        x: 0,
+        y: 0,
+        toJSON: () => ({})
+      })),
+      style: {},
+      clientWidth: 800,
+      clientHeight: 600,
+      offsetWidth: 800,
+      offsetHeight: 600,
+    } as unknown as HTMLCanvasElement;
+    return canvas;
+  };
+
+  const mockCanvas = createMockCanvas();
+
   
   testState.canvas = mockCanvas;
   
@@ -181,7 +189,7 @@ export function setupWebGLEnvironment(): void {
     
     document.createElement = vi.fn((tagName: string) => {
       if (tagName.toLowerCase() === 'canvas') {
-        return mockCanvas;
+        return createMockCanvas();
       }
       return originalCreateElement.call(document, tagName);
     }) as any;

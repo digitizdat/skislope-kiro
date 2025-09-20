@@ -298,25 +298,35 @@ describe('Browser API Mocks', () => {
       expect(xhr.open).toHaveBeenCalledWith('GET', 'https://example.com/api');
     });
 
-    it('should handle send method and trigger events', (done) => {
+    it('should handle send method and trigger events', async () => {
       const xhr = new MockXHR();
       
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) {
-          expect(xhr.status).toBe(200);
-          expect(xhr.statusText).toBe('OK');
-          expect(xhr.response).toBe('{}');
-          expect(xhr.responseText).toBe('{}');
-          done();
-        }
-      };
-      
-      xhr.onload = () => {
-        expect(xhr.readyState).toBe(4);
-      };
+      const promise = new Promise<void>((resolve, reject) => {
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState === 4) {
+            try {
+              expect(xhr.status).toBe(200);
+              expect(xhr.statusText).toBe('OK');
+              expect(xhr.response).toBe('{}');
+              expect(xhr.responseText).toBe('{}');
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          }
+        };
+        
+        xhr.onload = () => {
+          expect(xhr.readyState).toBe(4);
+        };
+        
+        xhr.onerror = () => reject(new Error('XMLHttpRequest failed'));
+      });
       
       xhr.open('GET', 'https://example.com/api');
       xhr.send();
+      
+      await promise;
     });
 
     it('should handle abort method', () => {

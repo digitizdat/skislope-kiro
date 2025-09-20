@@ -1107,6 +1107,8 @@ export class WebGLTestEnvironment {
     const webglContext = this.webglMock.getContext();
     HTMLCanvasElement.prototype.getContext = vi.fn(function(this: HTMLCanvasElement, contextType: string, attributes?: any) {
       if (contextType === 'webgl' || contextType === 'experimental-webgl') {
+        // Set the canvas property on the context to reference this canvas element
+        (webglContext as any).canvas = this;
         return webglContext;
       }
       // For non-WebGL contexts, try to use original method if available

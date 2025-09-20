@@ -79,7 +79,7 @@ export function createFetchMock(): MockFetch {
     status: responseData.status ?? 200,
     statusText: responseData.statusText ?? 'OK',
     headers: responseData.headers ?? new Map(),
-    url: responseData.url ?? url,
+    url: url, // Always use the actual request URL
     json: () => Promise.resolve(responseData.json ?? {}),
     text: () => Promise.resolve(responseData.text ?? ''),
     blob: () => Promise.resolve(responseData.blob ?? new Blob()),
@@ -494,18 +494,57 @@ export function createFileBlobMocks() {
     this.size = 0;
     this.type = options?.type || '';
     
+    // Store the actual data for proper arrayBuffer conversion
+    let storedData: Uint8Array | null = null;
+    
     if (parts) {
-      this.size = parts.reduce((total, part) => {
+      // Calculate total size and combine data
+      const dataChunks: Uint8Array[] = [];
+      let totalSize = 0;
+      
+      for (const part of parts) {
         if (typeof part === 'string') {
-          return total + part.length;
+          const encoder = new TextEncoder();
+          const chunk = encoder.encode(part);
+          dataChunks.push(chunk);
+          totalSize += chunk.length;
         } else if (part instanceof ArrayBuffer) {
-          return total + part.byteLength;
+          const chunk = new Uint8Array(part);
+          dataChunks.push(chunk);
+          totalSize += chunk.length;
         } else if (part instanceof Uint8Array) {
-          return total + part.length;
+          dataChunks.push(part);
+          totalSize += part.length;
+        } else if (part && typeof part === 'object' && 'size' in part && '_mockData' in part) {
+          // Handle MockBlob objects - extract their stored data
+          const blobData = (part as any)._mockData;
+          if (blobData instanceof Uint8Array) {
+            dataChunks.push(blobData);
+            totalSize += blobData.length;
+          } else {
+            totalSize += (part as any).size;
+          }
+        } else if (part && typeof part === 'object' && 'size' in part) {
+          // Handle other Blob objects - for now just add to size
+          totalSize += (part as any).size;
         }
-        return total;
-      }, 0);
+      }
+      
+      this.size = totalSize;
+      
+      // Combine all chunks into a single Uint8Array
+      if (dataChunks.length > 0) {
+        storedData = new Uint8Array(totalSize);
+        let offset = 0;
+        for (const chunk of dataChunks) {
+          storedData.set(chunk, offset);
+          offset += chunk.length;
+        }
+      }
     }
+    
+    // Store the data for access by other Blob/File objects
+    (this as any)._mockData = storedData;
     
     this.slice = vi.fn((start?: number, end?: number, contentType?: string) => 
       new (MockBlob as any)([], { type: contentType })
@@ -513,7 +552,12 @@ export function createFileBlobMocks() {
     
     this.stream = vi.fn(() => new ReadableStream());
     this.text = vi.fn(() => Promise.resolve(''));
-    this.arrayBuffer = vi.fn(() => Promise.resolve(new ArrayBuffer(this.size)));
+    this.arrayBuffer = vi.fn(() => {
+      if (storedData) {
+        return Promise.resolve(storedData.buffer.slice(storedData.byteOffset, storedData.byteOffset + storedData.byteLength));
+      }
+      return Promise.resolve(new ArrayBuffer(this.size));
+    });
   } as any;
   
   const MockFile = function(this: MockFile, parts: BlobPart[], name: string, options?: FilePropertyBag) {
