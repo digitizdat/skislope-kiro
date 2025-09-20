@@ -3,9 +3,6 @@
 import time
 from datetime import datetime
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 import structlog
 import uvicorn
@@ -42,16 +39,16 @@ health_checker = HealthChecker("weather")
 
 # JSON-RPC Methods
 async def get_weather(
-    area: Dict[str, Any],
-    timestamp: Optional[str] = None,
+    area: dict[str, Any],
+    timestamp: str | None = None,
     include_forecast: bool = False,
     forecast_days: int = 7,
     include_historical: bool = False,
     historical_days: int = 30,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get weather data for the specified ski area.
-    
+
     Args:
         area: Ski area object with bounds and location info
         timestamp: Specific timestamp (ISO format, for historical data)
@@ -59,29 +56,29 @@ async def get_weather(
         forecast_days: Number of forecast days
         include_historical: Include historical data
         historical_days: Number of historical days
-        
+
     Returns:
         Weather data
     """
     start_time = time.time()
-    
+
     try:
         # Parse timestamp if provided
         parsed_timestamp = None
         if timestamp:
-            parsed_timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-        
+            parsed_timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+
         # Extract coordinates from area bounds (use center point)
-        bounds = area.get('bounds', {})
-        north_east = bounds.get('northEast', {})
-        south_west = bounds.get('southWest', {})
-        
+        bounds = area.get("bounds", {})
+        north_east = bounds.get("northEast", {})
+        south_west = bounds.get("southWest", {})
+
         # Calculate center coordinates
-        latitude = (north_east.get('lat', 46.0) + south_west.get('lat', 45.0)) / 2
-        longitude = (north_east.get('lng', 7.0) + south_west.get('lng', 6.0)) / 2
-        
+        latitude = (north_east.get("lat", 46.0) + south_west.get("lat", 45.0)) / 2
+        longitude = (north_east.get("lng", 7.0) + south_west.get("lng", 6.0)) / 2
+
         # Create request
-        weather_request = WeatherRequest(
+        WeatherRequest(
             latitude=latitude,
             longitude=longitude,
             timestamp=parsed_timestamp,
@@ -90,29 +87,27 @@ async def get_weather(
             include_historical=include_historical,
             historical_days=historical_days,
         )
-        
+
         # Get current weather
-        current_weather = await weather_service.get_current_weather(
-            latitude, longitude
-        )
-        
+        current_weather = await weather_service.get_current_weather(latitude, longitude)
+
         # Get forecast if requested
         forecast = []
         if include_forecast:
             forecast = await weather_service.get_weather_forecast(
                 latitude, longitude, forecast_days
             )
-        
+
         # Get historical data if requested
         historical = []
         if include_historical:
             historical = await weather_service.get_historical_weather(
                 latitude, longitude, historical_days
             )
-        
+
         # Create response
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         response = WeatherResponse(
             current=current_weather,
             forecast=forecast,
@@ -126,14 +121,14 @@ async def get_weather(
             cache_expires_at=datetime.now().replace(microsecond=0),
             processing_time_ms=processing_time_ms,
         )
-        
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_weather",
             (time.time() - start_time),
             True,
         )
-        
+
         logger.info(
             "Weather request completed",
             latitude=latitude,
@@ -142,9 +137,9 @@ async def get_weather(
             include_historical=include_historical,
             processing_time_ms=processing_time_ms,
         )
-        
+
         return response.model_dump()
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -152,7 +147,7 @@ async def get_weather(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Weather request failed",
             latitude=latitude,
@@ -166,40 +161,40 @@ async def get_weather(
 async def get_ski_conditions(
     latitude: float,
     longitude: float,
-    elevation_m: Optional[float] = None,
-) -> Dict[str, Any]:
+    elevation_m: float | None = None,
+) -> dict[str, Any]:
     """
     Get ski-specific weather conditions analysis.
-    
+
     Args:
         latitude: Latitude
         longitude: Longitude
         elevation_m: Elevation in meters
-        
+
     Returns:
         Ski conditions analysis
     """
     start_time = time.time()
-    
+
     try:
         # Create request
-        ski_request = SkiConditionsRequest(
+        SkiConditionsRequest(
             latitude=latitude,
             longitude=longitude,
             elevation_m=elevation_m,
         )
-        
+
         # Get ski conditions
         conditions = await weather_service.get_ski_conditions(
             latitude, longitude, elevation_m
         )
-        
+
         # Get current weather for context
         weather = await weather_service.get_current_weather(latitude, longitude)
-        
+
         # Create response
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         response = SkiConditionsResponse(
             conditions=conditions,
             weather=weather,
@@ -212,14 +207,14 @@ async def get_ski_conditions(
             timestamp=datetime.now(),
             processing_time_ms=processing_time_ms,
         )
-        
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_ski_conditions",
             (time.time() - start_time),
             True,
         )
-        
+
         logger.info(
             "Ski conditions request completed",
             latitude=latitude,
@@ -228,9 +223,9 @@ async def get_ski_conditions(
             overall_rating=conditions.overall_rating,
             processing_time_ms=processing_time_ms,
         )
-        
+
         return response.model_dump()
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -238,7 +233,7 @@ async def get_ski_conditions(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Ski conditions request failed",
             latitude=latitude,
@@ -253,62 +248,68 @@ async def get_ski_conditions(
 async def get_weather_alerts(
     latitude: float,
     longitude: float,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get weather alerts for the specified coordinates.
-    
+
     Args:
         latitude: Latitude
         longitude: Longitude
-        
+
     Returns:
         Weather alerts
     """
     start_time = time.time()
-    
+
     try:
         # Get current weather to check for alert conditions
         weather = await weather_service.get_current_weather(latitude, longitude)
-        
+
         alerts = []
-        
+
         # Check for various alert conditions
         if weather.wind.speed_kmh > 50:
-            alerts.append({
-                "type": "wind",
-                "severity": "high",
-                "title": "High Wind Warning",
-                "description": f"Wind speeds of {weather.wind.speed_kmh:.1f} km/h. Avoid exposed areas.",
-                "expires_at": (datetime.now().timestamp() + 3600),  # 1 hour
-            })
-        
+            alerts.append(
+                {
+                    "type": "wind",
+                    "severity": "high",
+                    "title": "High Wind Warning",
+                    "description": f"Wind speeds of {weather.wind.speed_kmh:.1f} km/h. Avoid exposed areas.",
+                    "expires_at": (datetime.now().timestamp() + 3600),  # 1 hour
+                }
+            )
+
         if weather.temperature_c < -25:
-            alerts.append({
-                "type": "temperature",
-                "severity": "extreme",
-                "title": "Extreme Cold Warning",
-                "description": f"Temperature of {weather.temperature_c:.1f}°C. Risk of frostbite.",
-                "expires_at": (datetime.now().timestamp() + 7200),  # 2 hours
-            })
-        
+            alerts.append(
+                {
+                    "type": "temperature",
+                    "severity": "extreme",
+                    "title": "Extreme Cold Warning",
+                    "description": f"Temperature of {weather.temperature_c:.1f}°C. Risk of frostbite.",
+                    "expires_at": (datetime.now().timestamp() + 7200),  # 2 hours
+                }
+            )
+
         if weather.visibility.distance_km < 1:
-            alerts.append({
-                "type": "visibility",
-                "severity": "high",
-                "title": "Low Visibility Warning",
-                "description": f"Visibility reduced to {weather.visibility.distance_km:.1f} km.",
-                "expires_at": (datetime.now().timestamp() + 1800),  # 30 minutes
-            })
-        
+            alerts.append(
+                {
+                    "type": "visibility",
+                    "severity": "high",
+                    "title": "Low Visibility Warning",
+                    "description": f"Visibility reduced to {weather.visibility.distance_km:.1f} km.",
+                    "expires_at": (datetime.now().timestamp() + 1800),  # 30 minutes
+                }
+            )
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_weather_alerts",
             (time.time() - start_time),
             True,
         )
-        
+
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         logger.info(
             "Weather alerts request completed",
             latitude=latitude,
@@ -316,7 +317,7 @@ async def get_weather_alerts(
             alert_count=len(alerts),
             processing_time_ms=processing_time_ms,
         )
-        
+
         return {
             "alerts": alerts,
             "location": {
@@ -326,7 +327,7 @@ async def get_weather_alerts(
             "timestamp": datetime.now().isoformat(),
             "processing_time_ms": processing_time_ms,
         }
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -334,7 +335,7 @@ async def get_weather_alerts(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Weather alerts request failed",
             latitude=latitude,
@@ -360,9 +361,19 @@ mcp_handler.register_tool(
             "latitude": {"type": "number", "minimum": -90, "maximum": 90},
             "longitude": {"type": "number", "minimum": -180, "maximum": 180},
             "include_forecast": {"type": "boolean", "default": False},
-            "forecast_days": {"type": "integer", "minimum": 1, "maximum": 14, "default": 7},
+            "forecast_days": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 14,
+                "default": 7,
+            },
             "include_historical": {"type": "boolean", "default": False},
-            "historical_days": {"type": "integer", "minimum": 1, "maximum": 365, "default": 30},
+            "historical_days": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 365,
+                "default": 30,
+            },
         },
         "required": ["latitude", "longitude"],
     },

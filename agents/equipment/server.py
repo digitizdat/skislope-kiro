@@ -3,17 +3,12 @@
 import time
 from datetime import datetime
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 import structlog
 import uvicorn
 
 from agents.equipment.equipment_service import EquipmentService
 from agents.equipment.models import EquipmentRequest
-from agents.equipment.models import LiftStatusUpdate
-from agents.equipment.models import TrailStatusUpdate
 from agents.shared.jsonrpc import create_jsonrpc_app
 from agents.shared.logging_config import setup_logging
 from agents.shared.mcp import add_mcp_support
@@ -41,19 +36,19 @@ health_checker = HealthChecker("equipment")
 
 # JSON-RPC Methods
 async def get_equipment_data(
-    area: Dict[str, Any],
+    area: dict[str, Any],
     include_status: bool = True,
-    equipment_types: Optional[List[str]] = None,
+    equipment_types: list[str] | None = None,
     include_lifts: bool = True,
     include_trails: bool = True,
     include_facilities: bool = True,
     include_safety_equipment: bool = True,
     operational_only: bool = False,
     open_trails_only: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get equipment data for the specified ski area.
-    
+
     Args:
         area: Ski area object with bounds and location info
         include_status: Include operational status
@@ -64,24 +59,24 @@ async def get_equipment_data(
         include_safety_equipment: Include safety equipment
         operational_only: Only include operational equipment
         open_trails_only: Only include open trails
-        
+
     Returns:
         Equipment data
     """
     start_time = time.time()
-    
+
     try:
         # Create request
         # Extract bounds from area
-        bounds = area.get('bounds', {})
-        north_east = bounds.get('northEast', {})
-        south_west = bounds.get('southWest', {})
-        
-        north = north_east.get('lat', 46.0)
-        south = south_west.get('lat', 45.0)
-        east = north_east.get('lng', 7.0)
-        west = south_west.get('lng', 6.0)
-        
+        bounds = area.get("bounds", {})
+        north_east = bounds.get("northEast", {})
+        south_west = bounds.get("southWest", {})
+
+        north = north_east.get("lat", 46.0)
+        south = south_west.get("lat", 45.0)
+        east = north_east.get("lng", 7.0)
+        west = south_west.get("lng", 6.0)
+
         equipment_request = EquipmentRequest(
             north=north,
             south=south,
@@ -94,17 +89,17 @@ async def get_equipment_data(
             operational_only=operational_only,
             open_trails_only=open_trails_only,
         )
-        
+
         # Get equipment data
         equipment_data = await equipment_service.get_equipment_data(equipment_request)
-        
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_equipment_data",
             (time.time() - start_time),
             True,
         )
-        
+
         logger.info(
             "Equipment data request completed",
             bounds={"north": north, "south": south, "east": east, "west": west},
@@ -114,9 +109,9 @@ async def get_equipment_data(
             safety_equipment=len(equipment_data["safety_equipment"]),
             processing_time_ms=equipment_data["processing_time_ms"],
         )
-        
+
         return equipment_data
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -124,7 +119,7 @@ async def get_equipment_data(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Equipment data request failed",
             bounds={"north": north, "south": south, "east": east, "west": west},
@@ -135,21 +130,21 @@ async def get_equipment_data(
 
 
 async def get_lift_status(
-    lift_ids: Optional[List[str]] = None,
-    bounds: Optional[Dict[str, float]] = None,
-) -> Dict[str, Any]:
+    lift_ids: list[str] | None = None,
+    bounds: dict[str, float] | None = None,
+) -> dict[str, Any]:
     """
     Get lift status information.
-    
+
     Args:
         lift_ids: Specific lift IDs to query
         bounds: Geographic bounds (north, south, east, west)
-        
+
     Returns:
         Lift status data
     """
     start_time = time.time()
-    
+
     try:
         # If bounds provided, get all lifts in area
         if bounds:
@@ -163,54 +158,58 @@ async def get_lift_status(
                 include_facilities=False,
                 include_safety_equipment=False,
             )
-            
-            equipment_data = await equipment_service.get_equipment_data(equipment_request)
+
+            equipment_data = await equipment_service.get_equipment_data(
+                equipment_request
+            )
             lifts = equipment_data["lifts"]
-            
+
             # Filter by lift IDs if provided
             if lift_ids:
                 lifts = [lift for lift in lifts if lift["id"] in lift_ids]
-        
+
         else:
             # For demonstration, return sample data
             lifts = []
-        
+
         # Extract status information
         lift_status = []
         for lift in lifts:
-            lift_status.append({
-                "id": lift["id"],
-                "name": lift["name"],
-                "type": lift["type"],
-                "status": lift["status"],
-                "capacity_per_hour": lift["capacity_per_hour"],
-                "vertical_rise_m": lift["vertical_rise_m"],
-                "operating_hours": lift["operating_hours"],
-                "last_inspection": lift["last_inspection"],
-                "next_maintenance": lift["next_maintenance"],
-            })
-        
+            lift_status.append(
+                {
+                    "id": lift["id"],
+                    "name": lift["name"],
+                    "type": lift["type"],
+                    "status": lift["status"],
+                    "capacity_per_hour": lift["capacity_per_hour"],
+                    "vertical_rise_m": lift["vertical_rise_m"],
+                    "operating_hours": lift["operating_hours"],
+                    "last_inspection": lift["last_inspection"],
+                    "next_maintenance": lift["next_maintenance"],
+                }
+            )
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_lift_status",
             (time.time() - start_time),
             True,
         )
-        
+
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         logger.info(
             "Lift status request completed",
             lift_count=len(lift_status),
             processing_time_ms=processing_time_ms,
         )
-        
+
         return {
             "lifts": lift_status,
             "timestamp": datetime.now().isoformat(),
             "processing_time_ms": processing_time_ms,
         }
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -218,7 +217,7 @@ async def get_lift_status(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Lift status request failed",
             lift_ids=lift_ids,
@@ -230,23 +229,23 @@ async def get_lift_status(
 
 
 async def get_trail_conditions(
-    trail_ids: Optional[List[str]] = None,
-    bounds: Optional[Dict[str, float]] = None,
-    difficulty_filter: Optional[str] = None,
-) -> Dict[str, Any]:
+    trail_ids: list[str] | None = None,
+    bounds: dict[str, float] | None = None,
+    difficulty_filter: str | None = None,
+) -> dict[str, Any]:
     """
     Get trail conditions information.
-    
+
     Args:
         trail_ids: Specific trail IDs to query
         bounds: Geographic bounds (north, south, east, west)
         difficulty_filter: Filter by difficulty level
-        
+
     Returns:
         Trail conditions data
     """
     start_time = time.time()
-    
+
     try:
         # If bounds provided, get all trails in area
         if bounds:
@@ -260,62 +259,70 @@ async def get_trail_conditions(
                 include_facilities=False,
                 include_safety_equipment=False,
             )
-            
-            equipment_data = await equipment_service.get_equipment_data(equipment_request)
+
+            equipment_data = await equipment_service.get_equipment_data(
+                equipment_request
+            )
             trails = equipment_data["trails"]
-            
+
             # Filter by trail IDs if provided
             if trail_ids:
                 trails = [trail for trail in trails if trail["id"] in trail_ids]
-            
+
             # Filter by difficulty if provided
             if difficulty_filter:
-                trails = [trail for trail in trails if trail["difficulty"] == difficulty_filter]
-        
+                trails = [
+                    trail
+                    for trail in trails
+                    if trail["difficulty"] == difficulty_filter
+                ]
+
         else:
             # For demonstration, return sample data
             trails = []
-        
+
         # Extract conditions information
         trail_conditions = []
         for trail in trails:
-            trail_conditions.append({
-                "id": trail["id"],
-                "name": trail["name"],
-                "difficulty": trail["difficulty"],
-                "status": trail["status"],
-                "length_m": trail["length_m"],
-                "vertical_drop_m": trail["vertical_drop_m"],
-                "average_grade_percent": trail["average_grade_percent"],
-                "groomed": trail["groomed"],
-                "snowmaking": trail["snowmaking"],
-                "last_groomed": trail["last_groomed"],
-                "snow_depth_cm": trail["snow_depth_cm"],
-                "surface_condition": trail["surface_condition"],
-            })
-        
+            trail_conditions.append(
+                {
+                    "id": trail["id"],
+                    "name": trail["name"],
+                    "difficulty": trail["difficulty"],
+                    "status": trail["status"],
+                    "length_m": trail["length_m"],
+                    "vertical_drop_m": trail["vertical_drop_m"],
+                    "average_grade_percent": trail["average_grade_percent"],
+                    "groomed": trail["groomed"],
+                    "snowmaking": trail["snowmaking"],
+                    "last_groomed": trail["last_groomed"],
+                    "snow_depth_cm": trail["snow_depth_cm"],
+                    "surface_condition": trail["surface_condition"],
+                }
+            )
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_trail_conditions",
             (time.time() - start_time),
             True,
         )
-        
+
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         logger.info(
             "Trail conditions request completed",
             trail_count=len(trail_conditions),
             difficulty_filter=difficulty_filter,
             processing_time_ms=processing_time_ms,
         )
-        
+
         return {
             "trails": trail_conditions,
             "timestamp": datetime.now().isoformat(),
             "processing_time_ms": processing_time_ms,
         }
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -323,7 +330,7 @@ async def get_trail_conditions(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Trail conditions request failed",
             trail_ids=trail_ids,
@@ -336,23 +343,23 @@ async def get_trail_conditions(
 
 
 async def get_facilities(
-    bounds: Dict[str, float],
-    facility_types: Optional[List[str]] = None,
+    bounds: dict[str, float],
+    facility_types: list[str] | None = None,
     open_only: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get facility information.
-    
+
     Args:
         bounds: Geographic bounds (north, south, east, west)
         facility_types: Filter by facility types
         open_only: Only include open facilities
-        
+
     Returns:
         Facility data
     """
     start_time = time.time()
-    
+
     try:
         # Get facilities in area
         equipment_request = EquipmentRequest(
@@ -365,26 +372,26 @@ async def get_facilities(
             include_facilities=True,
             include_safety_equipment=False,
         )
-        
+
         equipment_data = await equipment_service.get_equipment_data(equipment_request)
         facilities = equipment_data["facilities"]
-        
+
         # Apply filters
         if facility_types:
             facilities = [f for f in facilities if f["type"] in facility_types]
-        
+
         if open_only:
             facilities = [f for f in facilities if f["is_open"]]
-        
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_facilities",
             (time.time() - start_time),
             True,
         )
-        
+
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         logger.info(
             "Facilities request completed",
             facility_count=len(facilities),
@@ -392,13 +399,13 @@ async def get_facilities(
             open_only=open_only,
             processing_time_ms=processing_time_ms,
         )
-        
+
         return {
             "facilities": facilities,
             "timestamp": datetime.now().isoformat(),
             "processing_time_ms": processing_time_ms,
         }
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -406,7 +413,7 @@ async def get_facilities(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Facilities request failed",
             bounds=bounds,
@@ -496,7 +503,14 @@ mcp_handler.register_tool(
             },
             "difficulty_filter": {
                 "type": "string",
-                "enum": ["beginner", "intermediate", "advanced", "expert", "terrain-park", "cross-country"],
+                "enum": [
+                    "beginner",
+                    "intermediate",
+                    "advanced",
+                    "expert",
+                    "terrain-park",
+                    "cross-country",
+                ],
                 "description": "Filter by difficulty level",
             },
         },
@@ -524,7 +538,19 @@ mcp_handler.register_tool(
                 "type": "array",
                 "items": {
                     "type": "string",
-                    "enum": ["lodge", "restaurant", "cafeteria", "bar", "shop", "rental", "ski-school", "first-aid", "parking", "restroom", "childcare"],
+                    "enum": [
+                        "lodge",
+                        "restaurant",
+                        "cafeteria",
+                        "bar",
+                        "shop",
+                        "rental",
+                        "ski-school",
+                        "first-aid",
+                        "parking",
+                        "restroom",
+                        "childcare",
+                    ],
                 },
                 "description": "Filter by facility types",
             },
@@ -551,7 +577,7 @@ async def check_equipment_service() -> bool:
             include_facilities=False,
             include_safety_equipment=False,
         )
-        
+
         await equipment_service.get_equipment_data(test_request)
         return True
     except Exception:

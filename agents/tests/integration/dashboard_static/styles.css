@@ -178,18 +178,18 @@ body {
     background: #f7fafc;
 }
 
-.category-card.success, .agent-card.healthy { 
-    border-left-color: #38a169; 
+.category-card.success, .agent-card.healthy {
+    border-left-color: #38a169;
     background: #f0fff4;
 }
 
-.category-card.warning, .agent-card.degraded { 
-    border-left-color: #d69e2e; 
+.category-card.warning, .agent-card.degraded {
+    border-left-color: #d69e2e;
     background: #fffbeb;
 }
 
-.category-card.error, .agent-card.failed { 
-    border-left-color: #e53e3e; 
+.category-card.error, .agent-card.failed {
+    border-left-color: #e53e3e;
     background: #fed7d7;
 }
 
@@ -212,18 +212,18 @@ body {
     font-weight: 500;
 }
 
-.category-status.success, .agent-status.healthy { 
-    background: #c6f6d5; 
+.category-status.success, .agent-status.healthy {
+    background: #c6f6d5;
     color: #22543d;
 }
 
-.category-status.warning, .agent-status.degraded { 
-    background: #faf089; 
+.category-status.warning, .agent-status.degraded {
+    background: #faf089;
     color: #744210;
 }
 
-.category-status.error, .agent-status.failed { 
-    background: #fed7d7; 
+.category-status.error, .agent-status.failed {
+    background: #fed7d7;
     color: #742a2a;
 }
 
@@ -340,11 +340,11 @@ body {
         gap: 1rem;
         text-align: center;
     }
-    
+
     .charts-section {
         grid-template-columns: 1fr;
     }
-    
+
     .categories-grid, .agent-grid {
         grid-template-columns: 1fr;
     }

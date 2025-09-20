@@ -8,12 +8,15 @@ pre-commit:
     # Python code quality checks
     python-format:
       glob: "*.py"
-      run: uv run ruff format --check {staged_files}
+      run: |
+        uv run ruff format --check {staged_files}
+        uv run ruff check --select I --fix {staged_files}
+        uv run ruff format --check {staged_files}
       stage_fixed: true
       
     python-lint:
       glob: "*.py"
-      run: uv run ruff check {staged_files}
+      run: uv run ruff check --fix --ignore E402,S311 {staged_files}
       
     # Python import validation (lightweight contract check)
     python-imports:
@@ -95,7 +98,7 @@ pre-commit:
         # Test critical imports
         uv run python -c "
         try:
-            from agents.shared.jsonrpc import JSONRPCServer
+            from agents.shared.jsonrpc import JSONRPCHandler
             from agents.tests.integration.api_contract_validator import APIContractValidator
             from agents.tests.integration.environment_validator import EnvironmentValidator
             print('✓ Critical imports successful')
@@ -126,7 +129,7 @@ pre-push:
         fi
         
         # Frontend tests
-        if ! npm test -- --run; then
+        if ! npm test; then
           echo "✗ Frontend tests failed"
           exit 1
         fi

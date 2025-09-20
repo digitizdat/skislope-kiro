@@ -1,9 +1,7 @@
 """Hill Metrics Agent server implementation."""
 
-import asyncio
 import time
 from typing import Any
-from typing import Dict
 
 import structlog
 import uvicorn
@@ -38,27 +36,27 @@ health_checker = HealthChecker("hill_metrics")
 
 # JSON-RPC Methods
 async def get_hill_metrics(
-    bounds: Dict[str, float],
+    bounds: dict[str, float],
     grid_size: str = "64x64",
     include_surface_classification: bool = True,
     include_safety_zones: bool = False,
     include_course_markers: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get hill metrics for the specified geographic bounds.
-    
+
     Args:
         bounds: Geographic bounds (north, south, east, west)
         grid_size: Grid resolution (32x32, 64x64, 96x96, 128x128)
         include_surface_classification: Include surface type analysis
         include_safety_zones: Include FIS safety zones
         include_course_markers: Include FIS course markers
-        
+
     Returns:
         Hill metrics data
     """
     start_time = time.time()
-    
+
     try:
         # Validate and create request
         terrain_request = TerrainRequest(
@@ -68,17 +66,17 @@ async def get_hill_metrics(
             include_safety_zones=include_safety_zones,
             include_course_markers=include_course_markers,
         )
-        
+
         # Process terrain data
         hill_metrics = await dem_processor.process_terrain(
             terrain_request.bounds,
             terrain_request.grid_size,
             terrain_request.include_surface_classification,
         )
-        
+
         # Create response
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         response = TerrainResponse(
             hill_metrics=hill_metrics,
             processing_time_ms=processing_time_ms,
@@ -86,23 +84,23 @@ async def get_hill_metrics(
             cache_key=f"terrain_{hash(str(terrain_request.model_dump()))}",
             expires_at=time.time() + 3600,  # 1 hour
         )
-        
+
         # Record performance metrics
         performance_monitor.record_request(
             "get_hill_metrics",
             (time.time() - start_time),
             True,
         )
-        
+
         logger.info(
             "Hill metrics request completed",
             bounds=bounds,
             grid_size=grid_size,
             processing_time_ms=processing_time_ms,
         )
-        
+
         return response.model_dump()
-        
+
     except Exception as e:
         # Record error
         performance_monitor.record_request(
@@ -110,7 +108,7 @@ async def get_hill_metrics(
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Hill metrics request failed",
             bounds=bounds,
@@ -127,22 +125,22 @@ async def get_elevation_profile(
     end_lat: float,
     end_lng: float,
     num_points: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get elevation profile along a line.
-    
+
     Args:
         start_lat: Starting latitude
         start_lng: Starting longitude
         end_lat: Ending latitude
         end_lng: Ending longitude
         num_points: Number of points in the profile
-        
+
     Returns:
         Elevation profile data
     """
     start_time = time.time()
-    
+
     try:
         # Create bounds that encompass the line
         bounds = {
@@ -151,49 +149,52 @@ async def get_elevation_profile(
             "east": max(start_lng, end_lng) + 0.001,
             "west": min(start_lng, end_lng) - 0.001,
         }
-        
+
         # Get terrain data
         hill_metrics_response = await get_hill_metrics(bounds, "64x64", False)
-        hill_metrics = hill_metrics_response["hill_metrics"]
-        
+        hill_metrics_response["hill_metrics"]
+
         # Extract elevation profile
         profile = []
         for i in range(num_points):
             t = i / (num_points - 1)
             lat = start_lat + t * (end_lat - start_lat)
             lng = start_lng + t * (end_lng - start_lng)
-            
+
             # Simple interpolation to get elevation at this point
             # In production, use proper bilinear interpolation
             elevation = 1500 + 500 * (i / num_points)  # Simplified
-            
-            profile.append({
-                "latitude": lat,
-                "longitude": lng,
-                "elevation": elevation,
-                "distance_km": t * 10,  # Simplified distance
-            })
-        
+
+            profile.append(
+                {
+                    "latitude": lat,
+                    "longitude": lng,
+                    "elevation": elevation,
+                    "distance_km": t * 10,  # Simplified distance
+                }
+            )
+
         performance_monitor.record_request(
             "get_elevation_profile",
             (time.time() - start_time),
             True,
         )
-        
+
         return {
             "profile": profile,
             "total_distance_km": 10,  # Simplified
-            "elevation_gain_m": max(p["elevation"] for p in profile) - min(p["elevation"] for p in profile),
+            "elevation_gain_m": max(p["elevation"] for p in profile)
+            - min(p["elevation"] for p in profile),
             "processing_time_ms": (time.time() - start_time) * 1000,
         }
-        
+
     except Exception as e:
         performance_monitor.record_request(
             "get_elevation_profile",
             (time.time() - start_time),
             False,
         )
-        
+
         logger.error(
             "Elevation profile request failed",
             start_lat=start_lat,
@@ -262,15 +263,16 @@ async def check_dem_processor() -> bool:
     """Check if DEM processor is working."""
     try:
         # Simple test bounds
-        from agents.hill_metrics.models import GeographicBounds, GridSize
-        
+        from agents.hill_metrics.models import GeographicBounds
+        from agents.hill_metrics.models import GridSize
+
         test_bounds = GeographicBounds(
             north=46.0,
             south=45.9,
             east=7.1,
             west=7.0,
         )
-        
+
         # Try to process a small area
         await dem_processor.process_terrain(test_bounds, GridSize.SMALL, False)
         return True

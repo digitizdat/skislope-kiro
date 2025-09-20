@@ -1,11 +1,7 @@
 """Monitoring dashboard server for agent health and performance."""
 
 import asyncio
-import json
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
 
 import httpx
 import structlog
@@ -134,7 +130,7 @@ async def dashboard_home():
                 <button class="refresh-btn" onclick="refreshData()">Refresh Data</button>
                 <span class="timestamp" id="lastUpdate"></span>
             </div>
-            
+
             <div class="agent-grid" id="agentGrid">
                 <!-- Agent cards will be populated by JavaScript -->
             </div>
@@ -153,9 +149,9 @@ async def dashboard_home():
             }
 
             function createAgentCard(agentId, agentData) {
-                const statusClass = agentData.status === 'healthy' ? 'status-healthy' : 
+                const statusClass = agentData.status === 'healthy' ? 'status-healthy' :
                                   agentData.status === 'unhealthy' ? 'status-unhealthy' : 'status-unknown';
-                
+
                 const metricsHtml = agentData.metrics ? Object.entries(agentData.metrics)
                     .map(([key, value]) => `
                         <div class="metric">
@@ -199,7 +195,7 @@ async def dashboard_home():
                     .map(([agentId, agentData]) => createAgentCard(agentId, agentData))
                     .join('');
 
-                document.getElementById('lastUpdate').textContent = 
+                document.getElementById('lastUpdate').textContent =
                     `Last updated: ${new Date(statusData.timestamp).toLocaleString()}`;
             }
 
@@ -224,7 +220,7 @@ async def get_agent_status():
         "timestamp": datetime.now().isoformat(),
         "agents": {},
     }
-    
+
     async with httpx.AsyncClient(timeout=5.0) as client:
         for agent_id, config in AGENT_SERVERS.items():
             agent_status = {
@@ -235,27 +231,29 @@ async def get_agent_status():
                 "response_time_ms": None,
                 "metrics": {},
             }
-            
+
             try:
                 # Check basic health
                 start_time = asyncio.get_event_loop().time()
                 health_response = await client.get(f"{config['url']}/health")
                 response_time = (asyncio.get_event_loop().time() - start_time) * 1000
-                
+
                 agent_status["response_time_ms"] = response_time
-                
+
                 if health_response.status_code == 200:
                     agent_status["status"] = "healthy"
-                    
+
                     # Try to get detailed health info
                     try:
-                        detailed_response = await client.get(f"{config['url']}/health/detailed")
+                        detailed_response = await client.get(
+                            f"{config['url']}/health/detailed"
+                        )
                         if detailed_response.status_code == 200:
                             detailed_data = detailed_response.json()
                             agent_status["detailed_health"] = detailed_data
                     except Exception:
                         pass
-                    
+
                     # Try to get metrics
                     try:
                         metrics_response = await client.get(f"{config['url']}/metrics")
@@ -264,10 +262,10 @@ async def get_agent_status():
                             agent_status["metrics"] = metrics_data
                     except Exception:
                         pass
-                        
+
                 else:
                     agent_status["status"] = "unhealthy"
-                    
+
             except Exception as e:
                 agent_status["status"] = "unhealthy"
                 agent_status["error"] = str(e)
@@ -277,9 +275,9 @@ async def get_agent_status():
                     url=config["url"],
                     error=str(e),
                 )
-            
+
             status_data["agents"][agent_id] = agent_status
-    
+
     return JSONResponse(content=status_data)
 
 
@@ -291,13 +289,13 @@ async def get_agent_health(agent_id: str):
             content={"error": f"Agent '{agent_id}' not found"},
             status_code=404,
         )
-    
+
     config = AGENT_SERVERS[agent_id]
-    
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(f"{config['url']}/health/detailed")
-            
+
             if response.status_code == 200:
                 return JSONResponse(content=response.json())
             else:
@@ -305,7 +303,7 @@ async def get_agent_health(agent_id: str):
                     content={"error": f"Agent returned status {response.status_code}"},
                     status_code=response.status_code,
                 )
-                
+
     except Exception as e:
         logger.error(
             "Failed to get agent health",
@@ -328,13 +326,13 @@ async def get_agent_metrics(agent_id: str):
             content={"error": f"Agent '{agent_id}' not found"},
             status_code=404,
         )
-    
+
     config = AGENT_SERVERS[agent_id]
-    
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(f"{config['url']}/metrics")
-            
+
             if response.status_code == 200:
                 return JSONResponse(content=response.json())
             else:
@@ -342,7 +340,7 @@ async def get_agent_metrics(agent_id: str):
                     content={"error": f"Agent returned status {response.status_code}"},
                     status_code=response.status_code,
                 )
-                
+
     except Exception as e:
         logger.error(
             "Failed to get agent metrics",
@@ -365,9 +363,9 @@ async def test_agent(agent_id: str, request: Request):
             content={"error": f"Agent '{agent_id}' not found"},
             status_code=404,
         )
-    
+
     config = AGENT_SERVERS[agent_id]
-    
+
     # Sample test requests for each agent
     test_requests = {
         "hill_metrics": {
@@ -405,41 +403,41 @@ async def test_agent(agent_id: str, request: Request):
             "id": "test_request",
         },
     }
-    
+
     if agent_id not in test_requests:
         return JSONResponse(
             content={"error": f"No test request defined for agent '{agent_id}'"},
             status_code=400,
         )
-    
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             start_time = asyncio.get_event_loop().time()
-            
+
             response = await client.post(
                 f"{config['url']}/jsonrpc",
                 json=test_requests[agent_id],
                 headers={"Content-Type": "application/json"},
             )
-            
+
             response_time = (asyncio.get_event_loop().time() - start_time) * 1000
-            
+
             result = {
                 "agent_id": agent_id,
                 "status_code": response.status_code,
                 "response_time_ms": response_time,
                 "timestamp": datetime.now().isoformat(),
             }
-            
+
             if response.status_code == 200:
                 result["response"] = response.json()
                 result["success"] = True
             else:
                 result["error"] = f"HTTP {response.status_code}"
                 result["success"] = False
-            
+
             return JSONResponse(content=result)
-            
+
     except Exception as e:
         logger.error(
             "Failed to test agent",
