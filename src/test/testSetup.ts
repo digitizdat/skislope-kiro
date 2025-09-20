@@ -213,10 +213,6 @@ export function setupIndexedDBMock(): void {
  * Setup comprehensive browser API mocks
  */
 export async function setupBrowserAPIMocks(): Promise<void> {
-  // Import and install simple browser API mocks
-  const { installSimpleBrowserMocks } = await import('./simpleBrowserMocks');
-  const mocks = installSimpleBrowserMocks();
-  
   // Store original APIs for restoration
   if (typeof globalThis !== 'undefined') {
     testState.originalAPIs.set('localStorage', globalThis.localStorage);
@@ -231,8 +227,23 @@ export async function setupBrowserAPIMocks(): Promise<void> {
     testState.originalAPIs.set('URL', globalThis.URL);
   }
   
-  // Store mock instances for later reset/cleanup
-  testState.originalAPIs.set('browserAPIMocks', mocks);
+  // Try to use comprehensive browser API mocks first, fallback to simple mocks
+  try {
+    const { installBrowserAPIMocks } = await import('./browserAPIMocks');
+    const mocks = installBrowserAPIMocks();
+    testState.originalAPIs.set('browserAPIMocks', mocks);
+    testState.originalAPIs.set('mockType', 'comprehensive');
+    console.log('Comprehensive browser API mocks installed');
+  } catch (error) {
+    console.warn('Failed to install comprehensive mocks, falling back to simple mocks:', error);
+    
+    // Fallback to simple browser API mocks
+    const { installSimpleBrowserMocks } = await import('./simpleBrowserMocks');
+    const mocks = installSimpleBrowserMocks();
+    testState.originalAPIs.set('browserAPIMocks', mocks);
+    testState.originalAPIs.set('mockType', 'simple');
+    console.log('Simple browser API mocks installed');
+  }
 }
 
 /**
@@ -459,11 +470,26 @@ export async function resetTestEnvironment(): Promise<void> {
     });
   }
   
-  // Reset comprehensive browser API mocks
+  // Reset browser API mocks based on type
   const browserAPIMocks = testState.originalAPIs.get('browserAPIMocks');
+  const mockType = testState.originalAPIs.get('mockType');
+  
   if (browserAPIMocks) {
-    const { resetSimpleBrowserMocks } = await import('./simpleBrowserMocks');
-    resetSimpleBrowserMocks(browserAPIMocks);
+    if (mockType === 'comprehensive') {
+      try {
+        const { resetBrowserAPIMocks } = await import('./browserAPIMocks');
+        resetBrowserAPIMocks(browserAPIMocks);
+      } catch (error) {
+        console.warn('Failed to reset comprehensive mocks:', error);
+      }
+    } else {
+      try {
+        const { resetSimpleBrowserMocks } = await import('./simpleBrowserMocks');
+        resetSimpleBrowserMocks(browserAPIMocks);
+      } catch (error) {
+        console.warn('Failed to reset simple mocks:', error);
+      }
+    }
   }
   
   // Reset IndexedDB mock state

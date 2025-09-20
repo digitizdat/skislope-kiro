@@ -46,11 +46,11 @@ export interface MockResponse {
   statusText: string;
   headers: Map<string, string>;
   url: string;
-  json: ReturnType<typeof vi.fn>;
-  text: ReturnType<typeof vi.fn>;
-  blob: ReturnType<typeof vi.fn>;
-  arrayBuffer: ReturnType<typeof vi.fn>;
-  clone: ReturnType<typeof vi.fn>;
+  json: () => Promise<any>;
+  text: () => Promise<string>;
+  blob: () => Promise<Blob>;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+  clone: () => MockResponse;
 }
 
 export interface MockFetch {
@@ -63,7 +63,6 @@ export interface MockFetch {
 }
 
 export function createFetchMock(): MockFetch {
-  const mockResponses = new Map<string, Partial<MockResponse>>();
   let defaultResponse: Partial<MockResponse> = {
     ok: true,
     status: 200,
@@ -72,66 +71,76 @@ export function createFetchMock(): MockFetch {
     url: '',
   };
   
+  let customImplementation: ((input: RequestInfo | URL, init?: RequestInit) => Promise<MockResponse>) | null = null;
+  let shouldReject: Error | null = null;
+  
   const createResponse = (responseData: Partial<MockResponse>, url: string): MockResponse => ({
     ok: responseData.ok ?? true,
     status: responseData.status ?? 200,
     statusText: responseData.statusText ?? 'OK',
     headers: responseData.headers ?? new Map(),
     url: responseData.url ?? url,
-    json: vi.fn(() => Promise.resolve(responseData.json ?? {})),
-    text: vi.fn(() => Promise.resolve(responseData.text ?? '')),
-    blob: vi.fn(() => Promise.resolve(responseData.blob ?? new Blob())),
-    arrayBuffer: vi.fn(() => Promise.resolve(responseData.arrayBuffer ?? new ArrayBuffer(0))),
-    clone: vi.fn(() => createResponse(responseData, url)),
+    json: () => Promise.resolve(responseData.json ?? {}),
+    text: () => Promise.resolve(responseData.text ?? ''),
+    blob: () => Promise.resolve(responseData.blob ?? new Blob()),
+    arrayBuffer: () => Promise.resolve(responseData.arrayBuffer ?? new ArrayBuffer(0)),
+    clone: () => createResponse(responseData, url),
   });
   
-  // Create the base vitest mock function
-  const vitestMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<MockResponse> => {
+  const fetchMock = async (input: RequestInfo | URL, init?: RequestInit): Promise<MockResponse> => {
+    if (shouldReject) {
+      throw shouldReject;
+    }
+    
+    if (customImplementation) {
+      return customImplementation(input, init);
+    }
+    
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    const responseData = mockResponses.get(url) || defaultResponse;
-    return createResponse(responseData, url);
-  });
+    return createResponse(defaultResponse, url);
+  };
   
-  // Create our custom fetch mock object
-  const fetchMock = Object.assign(vitestMock, {
-    mockResolvedValue: (response: Partial<MockResponse>) => {
-      defaultResponse = response;
-    },
-    
-    mockRejectedValue: (error: Error) => {
-      vitestMock.mockImplementation(() => Promise.reject(error));
-    },
-    
-    mockImplementation: (fn: (input: RequestInfo | URL, init?: RequestInit) => Promise<MockResponse>) => {
-      vitestMock.mockImplementation(fn);
-    },
-    
-    mockClear: () => {
-      vitestMock.mockClear();
-      mockResponses.clear();
-      defaultResponse = {
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        headers: new Map(),
-        url: '',
-      };
-    },
-    
-    mockReset: () => {
-      vitestMock.mockReset();
-      mockResponses.clear();
-      defaultResponse = {
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        headers: new Map(),
-        url: '',
-      };
-    },
-  }) as MockFetch;
+  fetchMock.mockResolvedValue = (response: Partial<MockResponse>) => {
+    defaultResponse = response;
+    customImplementation = null;
+    shouldReject = null;
+  };
   
-  return fetchMock;
+  fetchMock.mockRejectedValue = (error: Error) => {
+    shouldReject = error;
+    customImplementation = null;
+  };
+  
+  fetchMock.mockImplementation = (fn: (input: RequestInfo | URL, init?: RequestInit) => Promise<MockResponse>) => {
+    customImplementation = fn;
+    shouldReject = null;
+  };
+  
+  fetchMock.mockClear = () => {
+    defaultResponse = {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map(),
+      url: '',
+    };
+    customImplementation = null;
+    shouldReject = null;
+  };
+  
+  fetchMock.mockReset = () => {
+    defaultResponse = {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map(),
+      url: '',
+    };
+    customImplementation = null;
+    shouldReject = null;
+  };
+  
+  return fetchMock as MockFetch;
 }
 
 // XMLHttpRequest Mock Implementation
@@ -650,14 +659,5 @@ export function resetBrowserAPIMocks(mocks: BrowserAPIMocks): void {
   // Reset fetch
   mocks.fetch.mockClear();
   
-  // Reset all vitest mocks
-  Object.values(mocks).forEach(mock => {
-    if (mock && typeof mock === 'object') {
-      Object.values(mock).forEach(method => {
-        if (typeof method === 'function' && 'mockClear' in method) {
-          (method as any).mockClear();
-        }
-      });
-    }
-  });
+  // Note: We don't need to reset vitest mocks recursively since we're using simpler implementations
 }
