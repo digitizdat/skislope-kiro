@@ -252,6 +252,36 @@ class IntegrationTestRunner:
 
 async def main():
     """Main function."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Run integration tests")
+    parser.add_argument("--ci-mode", action="store_true", 
+                       help="Run in CI mode with additional reporting")
+    parser.add_argument("--output-dir", default="test-results",
+                       help="Output directory for test results")
+    
+    args = parser.parse_args()
+    
+    # Set up CI-specific environment
+    if args.ci_mode:
+        os.environ["CI"] = "true"
+        os.environ["INTEGRATION_TEST_TIMEOUT"] = "300"
+        
+        # Create output directory
+        output_dir = Path(args.output_dir)
+        output_dir.mkdir(exist_ok=True)
+        
+        # Configure logging for CI
+        import logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(output_dir / "integration_tests.log"),
+                logging.StreamHandler()
+            ]
+        )
+    
     runner = IntegrationTestRunner()
     
     # Handle Ctrl+C gracefully
@@ -265,11 +295,48 @@ async def main():
     
     try:
         success = await runner.run_all_tests()
+        
+        if args.ci_mode:
+            # Generate CI-specific outputs
+            await generate_ci_reports(success, args.output_dir)
+        
         sys.exit(0 if success else 1)
     except Exception as e:
         logger.error("Integration test runner failed", error=str(e), exc_info=True)
         runner.stop_agents()
         sys.exit(1)
+
+
+async def generate_ci_reports(success: bool, output_dir: str):
+    """Generate CI-specific test reports."""
+    output_path = Path(output_dir)
+    
+    # Generate JUnit XML report
+    junit_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="IntegrationTests" tests="1" failures="{0 if success else 1}" time="0">
+    <testcase name="FullIntegrationSuite" time="0">
+        {'' if success else '<failure message="Integration tests failed" />'}
+    </testcase>
+</testsuite>
+"""
+    
+    with open(output_path / "integration_tests.xml", "w") as f:
+        f.write(junit_xml)
+    
+    # Generate JSON summary
+    import json
+    summary = {
+        "success": success,
+        "timestamp": time.time(),
+        "environment": {
+            "ci": os.environ.get("CI", "false"),
+            "python_version": sys.version,
+            "platform": sys.platform
+        }
+    }
+    
+    with open(output_path / "integration_summary.json", "w") as f:
+        json.dump(summary, f, indent=2)
 
 
 if __name__ == "__main__":

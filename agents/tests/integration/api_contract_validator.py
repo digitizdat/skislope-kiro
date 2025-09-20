@@ -82,7 +82,7 @@ class APIContractValidator:
     and validates JSON-RPC protocol compliance.
     """
     
-    def __init__(self, config: TestConfig):
+    def __init__(self, config: Optional[TestConfig] = None):
         self.config = config
         self.session: Optional[aiohttp.ClientSession] = None
         
@@ -181,8 +181,12 @@ class APIContractValidator:
     
     async def __aenter__(self):
         """Async context manager entry."""
+        timeout = 30  # Default timeout
+        if self.config and hasattr(self.config, 'timeouts'):
+            timeout = self.config.timeouts.network_request
+            
         self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=self.config.timeouts.network_request)
+            timeout=aiohttp.ClientTimeout(total=timeout)
         )
         return self
     
@@ -198,6 +202,9 @@ class APIContractValidator:
         Returns:
             List of validation results for each agent
         """
+        if not self.config:
+            raise ValueError("Config required for validate_all_contracts")
+            
         results = []
         
         for agent_name, agent_config in self.config.agents.items():
@@ -720,6 +727,69 @@ class APIContractValidator:
             test_results.append(test_result)
         
         return test_results
+    
+    def discover_agent_methods_static(self, agent_file_path: str) -> List[MethodSignature]:
+        """
+        Discover agent methods via static analysis without starting the agent.
+        
+        This method is used for lightweight contract validation in pre-commit hooks
+        and CI environments where starting full agents is not desired.
+        
+        Args:
+            agent_file_path: Path to the agent server file
+            
+        Returns:
+            List of discovered method signatures
+        """
+        methods = []
+        
+        try:
+            # Convert relative path to absolute
+            if not Path(agent_file_path).is_absolute():
+                project_root = Path(__file__).parent.parent.parent.parent
+                agent_file_path = str(project_root / agent_file_path)
+            
+            agent_path = Path(agent_file_path)
+            if not agent_path.exists():
+                raise FileNotFoundError(f"Agent file not found: {agent_file_path}")
+            
+            # Extract agent name from path
+            agent_name = agent_path.parent.name
+            
+            # Import the agent module
+            module_name = f"agents.{agent_name}.server"
+            
+            # Add project root to Python path if not already there
+            project_root = Path(__file__).parent.parent.parent.parent
+            if str(project_root) not in sys.path:
+                sys.path.insert(0, str(project_root))
+            
+            module = importlib.import_module(module_name)
+            
+            # Look for registered JSON-RPC methods
+            if hasattr(module, 'jsonrpc_handler') and hasattr(module.jsonrpc_handler, 'methods'):
+                for method_name, handler in module.jsonrpc_handler.methods.items():
+                    signature = self._extract_method_signature(method_name, handler)
+                    methods.append(signature)
+            else:
+                # Fallback: scan module for async functions that look like RPC methods
+                for name, obj in inspect.getmembers(module):
+                    if (inspect.iscoroutinefunction(obj) and 
+                        not name.startswith('_') and 
+                        name not in ['startup_event', 'shutdown_event', 'health_check', 'detailed_health_check']):
+                        signature = self._extract_method_signature(name, obj)
+                        methods.append(signature)
+            
+            logger.info(f"Discovered {len(methods)} methods in {agent_file_path}")
+            
+        except ImportError as e:
+            logger.error(f"Failed to import agent module from {agent_file_path}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Failed to discover methods in {agent_file_path}: {e}")
+            raise
+        
+        return methods
     
     def _generate_suggested_fix(self, validation_result: ContractValidationResult) -> str:
         """

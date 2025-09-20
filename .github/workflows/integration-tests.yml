@@ -1,0 +1,164 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run integration tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+        node-version: ["18", "20"]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        version: "latest"
+        
+    - name: Install Python dependencies
+      run: |
+        uv sync --all-extras
+        
+    - name: Install Node dependencies
+      run: |
+        npm ci
+        
+    - name: Verify Python imports
+      run: |
+        uv run python -c "import agents.hill_metrics.server"
+        uv run python -c "import agents.weather.server"
+        uv run python -c "import agents.equipment.server"
+        
+    - name: Run Python unit tests
+      run: |
+        uv run pytest agents/tests/ -v --tb=short --junitxml=test-results/python-tests.xml
+        
+    - name: Run frontend unit tests
+      run: |
+        npm test -- --run --reporter=junit --outputFile=test-results/frontend-tests.xml
+        
+    - name: Build frontend
+      run: |
+        npm run build
+        
+    - name: Start agent servers for integration tests
+      run: |
+        # Start agents in background
+        uv run python -m agents.hill_metrics.server --port 8001 &
+        uv run python -m agents.weather.server --port 8002 &
+        uv run python -m agents.equipment.server --port 8003 &
+        
+        # Wait for agents to start
+        sleep 10
+        
+        # Verify agents are running
+        curl -f http://localhost:8001/health || exit 1
+        curl -f http://localhost:8002/health || exit 1
+        curl -f http://localhost:8003/health || exit 1
+      
+    - name: Run integration tests
+      run: |
+        uv run python scripts/test_integration.py --ci-mode --output-dir=test-results
+      env:
+        CI: true
+        INTEGRATION_TEST_TIMEOUT: 300
+        
+    - name: Stop agent servers
+      if: always()
+      run: |
+        pkill -f "python.*agents" || true
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-py${{ matrix.python-version }}-node${{ matrix.node-version }}
+        path: test-results/
+        retention-days: 30
+        
+    - name: Upload integration test logs
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: integration-logs-py${{ matrix.python-version }}-node${{ matrix.node-version }}
+        path: |
+          logs/
+          temp/integration_tests/
+        retention-days: 7
+        
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Integration Tests (Python ${{ matrix.python-version }}, Node ${{ matrix.node-version }})
+        path: 'test-results/*.xml'
+        reporter: java-junit
+        fail-on-error: true
+
+  deployment-validation:
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+        cache: 'npm'
+        
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      
+    - name: Install dependencies
+      run: |
+        uv sync
+        npm ci
+        
+    - name: Build production assets
+      run: |
+        npm run build
+        
+    - name: Run deployment smoke tests
+      run: |
+        uv run python scripts/deployment_smoke_tests.py
+        
+    - name: Upload deployment test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: deployment-test-results
+        path: deployment-test-results/
+        retention-days: 30

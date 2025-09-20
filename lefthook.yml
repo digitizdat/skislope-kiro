@@ -1,0 +1,168 @@
+# Lefthook configuration for pre-commit hooks
+# Install with: npm install lefthook --save-dev && npx lefthook install
+
+pre-commit:
+  parallel: true
+  
+  commands:
+    # Python code quality checks
+    python-format:
+      glob: "*.py"
+      run: uv run ruff format --check {staged_files}
+      stage_fixed: true
+      
+    python-lint:
+      glob: "*.py"
+      run: uv run ruff check {staged_files}
+      
+    # Python import validation (lightweight contract check)
+    python-imports:
+      run: |
+        echo "Validating Python imports..."
+        uv run python -c "import agents.hill_metrics.server" || exit 1
+        uv run python -c "import agents.weather.server" || exit 1
+        uv run python -c "import agents.equipment.server" || exit 1
+        echo "✓ All agent imports successful"
+        
+    # Frontend code quality checks
+    frontend-lint:
+      glob: "src/**/*.{ts,tsx}"
+      run: npm run lint -- {staged_files}
+      
+    frontend-type-check:
+      glob: "src/**/*.{ts,tsx}"
+      run: npm run type-check
+      
+    # Lightweight API contract validation
+    api-contract-check:
+      run: |
+        echo "Running lightweight API contract validation..."
+        uv run python -c "
+        import sys
+        sys.path.append('agents/tests/integration')
+        from api_contract_validator import APIContractValidator
+        validator = APIContractValidator()
+        
+        # Quick contract check without starting full agents
+        try:
+            methods = validator.discover_agent_methods_static('agents/hill_metrics/server.py')
+            print(f'✓ Hill metrics agent: {len(methods)} methods discovered')
+            
+            methods = validator.discover_agent_methods_static('agents/weather/server.py')
+            print(f'✓ Weather agent: {len(methods)} methods discovered')
+            
+            methods = validator.discover_agent_methods_static('agents/equipment/server.py')
+            print(f'✓ Equipment agent: {len(methods)} methods discovered')
+            
+            print('✓ API contract validation passed')
+        except Exception as e:
+            print(f'✗ API contract validation failed: {e}')
+            sys.exit(1)
+        "
+        
+    # Dependency consistency check
+    dependency-check:
+      run: |
+        echo "Checking dependency consistency..."
+        
+        # Check for mixed package manager usage
+        if pip list 2>/dev/null | grep -E "(fastapi|uvicorn|structlog)" >/dev/null; then
+          echo "✗ ERROR: Found packages installed via pip in uv project"
+          echo "  Please use 'uv add' instead of 'pip install'"
+          exit 1
+        fi
+        
+        # Verify uv.lock is up to date
+        if ! uv sync --check >/dev/null 2>&1; then
+          echo "✗ ERROR: uv.lock is out of sync with pyproject.toml"
+          echo "  Run 'uv sync' to update dependencies"
+          exit 1
+        fi
+        
+        echo "✓ Dependency consistency check passed"
+        
+    # Quick smoke test
+    quick-test:
+      run: |
+        echo "Running quick smoke tests..."
+        
+        # Test critical imports
+        uv run python -c "
+        try:
+            from agents.shared.jsonrpc import JSONRPCServer
+            from agents.tests.integration.api_contract_validator import APIContractValidator
+            from agents.tests.integration.environment_validator import EnvironmentValidator
+            print('✓ Critical imports successful')
+        except ImportError as e:
+            print(f'✗ Import error: {e}')
+            exit(1)
+        "
+        
+        # Test frontend build
+        if ! npm run build >/dev/null 2>&1; then
+          echo "✗ Frontend build failed"
+          exit 1
+        fi
+        
+        echo "✓ Quick smoke tests passed"
+
+pre-push:
+  commands:
+    # More comprehensive tests before push
+    full-test-suite:
+      run: |
+        echo "Running comprehensive pre-push tests..."
+        
+        # Backend tests
+        if ! uv run pytest agents/tests/ -v --tb=short; then
+          echo "✗ Backend tests failed"
+          exit 1
+        fi
+        
+        # Frontend tests
+        if ! npm test -- --run; then
+          echo "✗ Frontend tests failed"
+          exit 1
+        fi
+        
+        # Integration test dry run (without starting agents)
+        if ! uv run python -c "
+        import sys
+        sys.path.append('agents/tests/integration')
+        from test_orchestrator import IntegrationTestOrchestrator
+        from config import TestConfig
+        
+        config = TestConfig()
+        orchestrator = IntegrationTestOrchestrator(config)
+        
+        # Validate test configuration
+        if not orchestrator.validate_test_environment():
+            print('✗ Test environment validation failed')
+            sys.exit(1)
+            
+        print('✓ Integration test environment validated')
+        "; then
+          echo "✗ Integration test validation failed"
+          exit 1
+        fi
+        
+        echo "✓ All pre-push tests passed"
+
+commit-msg:
+  commands:
+    # Validate commit message format (Conventional Commits)
+    commit-msg-format:
+      run: |
+        commit_msg=$(cat {1})
+        
+        # Check conventional commit format
+        if ! echo "$commit_msg" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.+\))?: .+"; then
+          echo "✗ Commit message must follow Conventional Commits format:"
+          echo "  <type>[optional scope]: <description>"
+          echo ""
+          echo "  Types: feat, fix, docs, style, refactor, perf, test, chore, ci"
+          echo "  Example: feat(agents): add health check endpoint"
+          exit 1
+        fi
+        
+        echo "✓ Commit message format is valid"
