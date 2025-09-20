@@ -27,7 +27,7 @@ beforeAll(async () => {
 })
 
 // Reset environment state between tests
-afterEach(() => {
+afterEach(async () => {
   // Clean up React components
   cleanup()
   
@@ -35,7 +35,7 @@ afterEach(() => {
   WebGLTestEnvironment.reset()
   
   // Reset test environment state
-  resetTestEnvironment()
+  await resetTestEnvironment()
 })
 
 // Clean up test environment after all tests

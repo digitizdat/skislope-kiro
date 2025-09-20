@@ -210,72 +210,29 @@ export function setupIndexedDBMock(): void {
 }
 
 /**
- * Setup browser API mocks
+ * Setup comprehensive browser API mocks
  */
-export function setupBrowserAPIMocks(): void {
-  if (typeof window !== 'undefined') {
-    // Store original APIs
-    testState.originalAPIs.set('localStorage', window.localStorage);
-    testState.originalAPIs.set('sessionStorage', window.sessionStorage);
-    testState.originalAPIs.set('fetch', window.fetch);
-    
-    // Create storage implementation with actual storage
-    const createStorageMock = () => {
-      const storage = new Map<string, string>();
-      return {
-        getItem: vi.fn((key: string) => storage.get(key) || null),
-        setItem: vi.fn((key: string, value: string) => {
-          storage.set(key, value);
-        }),
-        removeItem: vi.fn((key: string) => {
-          storage.delete(key);
-        }),
-        clear: vi.fn(() => {
-          storage.clear();
-        }),
-        get length() {
-          return storage.size;
-        },
-        key: vi.fn((index: number) => {
-          const keys = Array.from(storage.keys());
-          return keys[index] || null;
-        }),
-      };
-    };
-    
-    // Mock localStorage
-    const localStorageMock = createStorageMock();
-    
-    // Mock sessionStorage
-    const sessionStorageMock = createStorageMock();
-    
-    // Mock fetch
-    const fetchMock = vi.fn(() => 
-      Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({}),
-        text: () => Promise.resolve(''),
-        blob: () => Promise.resolve(new Blob()),
-        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-      } as Response)
-    );
-    
-    Object.defineProperty(window, 'localStorage', {
-      value: localStorageMock,
-      writable: true,
-    });
-    
-    Object.defineProperty(window, 'sessionStorage', {
-      value: sessionStorageMock,
-      writable: true,
-    });
-    
-    Object.defineProperty(window, 'fetch', {
-      value: fetchMock,
-      writable: true,
-    });
+export async function setupBrowserAPIMocks(): Promise<void> {
+  // Import and install simple browser API mocks
+  const { installSimpleBrowserMocks } = await import('./simpleBrowserMocks');
+  const mocks = installSimpleBrowserMocks();
+  
+  // Store original APIs for restoration
+  if (typeof globalThis !== 'undefined') {
+    testState.originalAPIs.set('localStorage', globalThis.localStorage);
+    testState.originalAPIs.set('sessionStorage', globalThis.sessionStorage);
+    testState.originalAPIs.set('fetch', globalThis.fetch);
+    testState.originalAPIs.set('XMLHttpRequest', globalThis.XMLHttpRequest);
+    testState.originalAPIs.set('AudioContext', globalThis.AudioContext);
+    testState.originalAPIs.set('webkitAudioContext', (globalThis as any).webkitAudioContext);
+    testState.originalAPIs.set('OfflineAudioContext', globalThis.OfflineAudioContext);
+    testState.originalAPIs.set('Blob', globalThis.Blob);
+    testState.originalAPIs.set('File', globalThis.File);
+    testState.originalAPIs.set('URL', globalThis.URL);
   }
+  
+  // Store mock instances for later reset/cleanup
+  testState.originalAPIs.set('browserAPIMocks', mocks);
 }
 
 /**
@@ -290,7 +247,7 @@ export async function initializeTestEnvironment(): Promise<void> {
     // Setup all mock environments
     setupWebGLEnvironment();
     setupIndexedDBMock();
-    setupBrowserAPIMocks();
+    await setupBrowserAPIMocks();
     
     // Ensure WebGL context is created
     if (!testState.webglContext) {
@@ -347,11 +304,13 @@ export async function teardownTestEnvironment(): Promise<void> {
     }
     
     // Restore original APIs
-    if (typeof window !== 'undefined') {
+    if (typeof globalThis !== 'undefined') {
       for (const [key, originalValue] of testState.originalAPIs) {
         switch (key) {
           case 'HTMLCanvasElement':
-            window.HTMLCanvasElement = originalValue;
+            if (typeof window !== 'undefined') {
+              window.HTMLCanvasElement = originalValue;
+            }
             break;
           case 'createElement':
             if (typeof document !== 'undefined') {
@@ -359,25 +318,115 @@ export async function teardownTestEnvironment(): Promise<void> {
             }
             break;
           case 'indexedDB':
-            window.indexedDB = originalValue;
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'indexedDB', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
             break;
           case 'IDBKeyRange':
-            window.IDBKeyRange = originalValue;
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'IDBKeyRange', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
             break;
           case 'localStorage':
-            Object.defineProperty(window, 'localStorage', {
-              value: originalValue,
-              writable: true,
-            });
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'localStorage', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
             break;
           case 'sessionStorage':
-            Object.defineProperty(window, 'sessionStorage', {
-              value: originalValue,
-              writable: true,
-            });
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'sessionStorage', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
             break;
           case 'fetch':
-            window.fetch = originalValue;
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'fetch', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'XMLHttpRequest':
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'XMLHttpRequest', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'AudioContext':
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'AudioContext', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'webkitAudioContext':
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'webkitAudioContext', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'OfflineAudioContext':
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'OfflineAudioContext', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'Blob':
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'Blob', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'File':
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'File', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'URL':
+            if (originalValue) {
+              Object.defineProperty(globalThis, 'URL', {
+                value: originalValue,
+                writable: true,
+                configurable: true,
+              });
+            }
+            break;
+          case 'browserAPIMocks':
+            // Skip - this is our internal reference
             break;
         }
       }
@@ -399,7 +448,7 @@ export async function teardownTestEnvironment(): Promise<void> {
 /**
  * Reset test environment between tests
  */
-export function resetTestEnvironment(): void {
+export async function resetTestEnvironment(): Promise<void> {
   // Reset WebGL context state
   if (testState.webglContext) {
     // Reset any stateful mocks
@@ -410,14 +459,11 @@ export function resetTestEnvironment(): void {
     });
   }
   
-  // Reset storage mocks
-  if (typeof window !== 'undefined') {
-    if (window.localStorage && 'clear' in window.localStorage) {
-      window.localStorage.clear();
-    }
-    if (window.sessionStorage && 'clear' in window.sessionStorage) {
-      window.sessionStorage.clear();
-    }
+  // Reset comprehensive browser API mocks
+  const browserAPIMocks = testState.originalAPIs.get('browserAPIMocks');
+  if (browserAPIMocks) {
+    const { resetSimpleBrowserMocks } = await import('./simpleBrowserMocks');
+    resetSimpleBrowserMocks(browserAPIMocks);
   }
   
   // Reset IndexedDB mock state
