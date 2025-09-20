@@ -24,7 +24,7 @@ The system consists of three independent agent servers:
 
 ### Prerequisites
 
-- Python 3.11 or higher
+- Python 3.12
 - uv (Python package manager)
 
 ### Installation
@@ -257,7 +257,7 @@ uv pip install -r pyproject.toml
 ### Docker Deployment
 
 ```dockerfile
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 COPY . .

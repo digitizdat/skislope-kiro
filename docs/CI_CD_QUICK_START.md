@@ -45,7 +45,7 @@ git commit -m "test: verify CI/CD setup"
 - **File**: `.github/workflows/integration-tests.yml`
 - **Triggers**: Push to main/develop, PRs, daily at 2 AM UTC
 - **Features**: 
-  - Matrix testing (Python 3.11/3.12, Node 18/20)
+  - Standardized environment (Python 3.12, Node 20)
   - Full integration test suite
   - Artifact collection
   - Test result reporting
@@ -204,7 +204,7 @@ Edit `lefthook.yml` to customize:
 ### Adjusting Workflows
 Edit `.github/workflows/integration-tests.yml` to:
 - Change trigger conditions
-- Modify test matrix
+- Modify environment versions
 - Add new test steps
 - Adjust timeouts
 

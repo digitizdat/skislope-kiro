@@ -9,7 +9,7 @@ The CI/CD integration provides:
 - Pre-commit hooks for fast feedback during development
 - Deployment validation smoke tests
 - Comprehensive test artifact collection and storage
-- Multi-environment testing (Python 3.11/3.12, Node 18/20)
+- Standardized environment testing (Python 3.12, Node 20)
 
 ## GitHub Actions Workflow
 
@@ -23,7 +23,7 @@ The main workflow (`.github/workflows/integration-tests.yml`) runs on:
 #### Workflow Steps
 
 1. **Environment Setup**
-   - Sets up Python and Node.js in matrix combinations
+   - Sets up Python 3.12 and Node.js 20
    - Installs `uv` for Python dependency management
    - Caches dependencies for faster builds
 
@@ -56,7 +56,7 @@ The main workflow (`.github/workflows/integration-tests.yml`) runs on:
 
 ### Deployment Validation
 
-The deployment validation job runs only on `main` branch pushes and includes:
+The deployment validation job runs only on `main` branch pushes using Python 3.12 and Node 20, and includes:
 - Production build verification
 - Deployment smoke tests
 - Production readiness checks
@@ -313,7 +313,7 @@ uv run python scripts/deployment_smoke_tests.py --verbose
 
 2. **Parallel Execution**
    - Run tests in parallel where possible
-   - Use matrix builds for multiple environments
+   - Use parallel execution for performance
 
 3. **Selective Testing**
    - Run only affected tests for pull requests
@@ -380,7 +380,7 @@ uv run python scripts/deployment_smoke_tests.py --verbose
 4. Keep test artifacts for debugging
 
 ### CI/CD Pipeline
-1. Use matrix builds for compatibility testing
+1. Use standardized environment for consistency
 2. Implement proper timeout handling
 3. Collect comprehensive artifacts
 4. Provide clear failure diagnostics
