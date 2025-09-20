@@ -278,3 +278,10 @@ cython_debug/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Temporary project directories
+cache/
+temp/
+test-results/
+test_results/
+
