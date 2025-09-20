@@ -128,9 +128,9 @@ pre-push:
           exit 1
         fi
         
-        # Frontend tests
-        if ! npm test; then
-          echo "✗ Frontend tests failed"
+        # Frontend tests (excluding integration tests that require agent servers)
+        if ! npm run test:unit; then
+          echo "✗ Frontend unit tests failed"
           exit 1
         fi
         
