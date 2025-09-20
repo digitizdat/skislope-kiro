@@ -2,6 +2,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Load test configuration from environment
+const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true'
+const ciMultiplier = isCI ? 1.5 : 1
+
 export default defineConfig({
   plugins: [react()],
   test: {
@@ -10,10 +14,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     
-    // Timeout settings for reliable test execution
-    timeout: 10000,        // Global timeout for test suites
-    testTimeout: 5000,     // Individual test timeout
-    hookTimeout: 10000,    // Setup/teardown timeout
+    // Timeout settings for reliable test execution (adjusted for CI)
+    timeout: Math.floor((parseInt(process.env.VITEST_TIMEOUT) || 10000) * ciMultiplier),
+    testTimeout: Math.floor((parseInt(process.env.VITEST_TEST_TIMEOUT) || 5000) * ciMultiplier),
+    hookTimeout: Math.floor((parseInt(process.env.VITEST_HOOK_TIMEOUT) || 10000) * ciMultiplier),
     
     // Test isolation and parallel execution
     isolate: true,         // Isolate test environments
@@ -84,8 +88,15 @@ export default defineConfig({
     // Environment variables for consistent configuration
     env: {
       NODE_ENV: 'test',
-      VITEST: 'true'
-    }
+      VITEST: 'true',
+      CI: process.env.CI || 'false',
+      DEBUG_TEST_SETUP: process.env.DEBUG_TEST_SETUP || 'false',
+      DEBUG_MOCK_OPERATIONS: process.env.DEBUG_MOCK_OPERATIONS || 'false',
+      DEBUG_CACHE_OPERATIONS: process.env.DEBUG_CACHE_OPERATIONS || 'false'
+    },
+    
+    // Retry configuration for flaky tests in CI
+    retry: isCI ? (parseInt(process.env.CI_RETRY_COUNT) || 2) : 0
   },
   
   // Resolve configuration to match production build

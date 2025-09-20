@@ -10,19 +10,57 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "cache:clear": "rm -rf node_modules/.vite",
-    "test": "vitest --run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --run --coverage",
-    "test:integration": "vitest run --reporter=verbose src/**/*.integration.test.ts",
-    "test:performance": "vitest run --reporter=verbose --logHeapUsage src/**/*.test.ts",
-    "test:filter": "vitest run --reporter=verbose",
-    "test:all": "npm run test && npm run test:integration",
+    
+    "test": "NODE_ENV=test vitest --run --reporter=verbose",
+    "test:watch": "NODE_ENV=test vitest --reporter=verbose",
+    "test:ui": "NODE_ENV=test vitest --ui",
+    
+    "test:coverage": "NODE_ENV=test vitest --run --coverage --reporter=verbose",
+    "test:coverage:watch": "NODE_ENV=test vitest --coverage --reporter=verbose",
+    "test:coverage:threshold": "NODE_ENV=test vitest --run --coverage --reporter=verbose --coverage.thresholdAutoUpdate=false",
+    
+    "test:integration": "NODE_ENV=test vitest run --reporter=verbose --testTimeout=10000 src/**/*.integration.test.ts",
+    "test:performance": "NODE_ENV=test vitest run --reporter=verbose --logHeapUsage --testTimeout=15000 src/**/*.test.ts",
+    
+    "test:filter": "NODE_ENV=test vitest run --reporter=verbose",
+    "test:filter:pattern": "NODE_ENV=test vitest run --reporter=verbose --testNamePattern",
+    "test:filter:file": "NODE_ENV=test vitest run --reporter=verbose",
+    
+    "test:unit": "NODE_ENV=test vitest run --reporter=verbose --exclude='**/*.integration.test.*'",
+    "test:all": "npm run test:unit && npm run test:integration",
+    "test:all:coverage": "npm run test:coverage && npm run test:integration",
+    
+    "test:ci": "NODE_ENV=test CI=true vitest --run --reporter=verbose --coverage --outputFile.json=./test-results/results.json --outputFile.html=./test-results/report.html",
+    "test:ci:unit": "NODE_ENV=test CI=true vitest --run --reporter=verbose --exclude='**/*.integration.test.*' --coverage",
+    "test:ci:integration": "NODE_ENV=test CI=true vitest run --reporter=verbose --testTimeout=15000 src/**/*.integration.test.ts",
+    "test:ci:artifacts": "npm run test:ci && npm run ci:artifacts",
+    
+    "test:debug": "NODE_ENV=test DEBUG=true vitest --run --reporter=verbose --logHeapUsage",
+    "test:debug:watch": "NODE_ENV=test DEBUG=true vitest --reporter=verbose --logHeapUsage",
+    
+    "test:setup:validate": "NODE_ENV=test vitest run --reporter=verbose src/test/testSetup.test.ts",
+    "test:mocks:validate": "NODE_ENV=test vitest run --reporter=verbose src/test/browserAPIMocks.test.ts src/test/cacheManagerMocks.ts",
+    
     "hooks:install": "npx lefthook install",
     "hooks:uninstall": "npx lefthook uninstall",
+    
     "ci:integration": "uv run python scripts/test_integration.py --ci-mode",
     "ci:smoke": "uv run python scripts/deployment_smoke_tests.py",
-    "ci:artifacts": "uv run python scripts/collect_test_artifacts.py"
+    "ci:artifacts": "uv run python scripts/collect_test_artifacts.py",
+    "ci:test:full": "npm run test:ci && npm run ci:integration && npm run ci:smoke",
+    
+    "test:runner": "node scripts/test-runner.js",
+    "test:runner:unit": "node scripts/test-runner.js unit",
+    "test:runner:integration": "node scripts/test-runner.js integration",
+    "test:runner:coverage": "node scripts/test-runner.js coverage",
+    "test:runner:performance": "node scripts/test-runner.js performance",
+    "test:runner:validate": "node scripts/test-runner.js validate",
+    "test:runner:ci": "node scripts/test-runner.js ci",
+    "test:runner:all": "node scripts/test-runner.js all",
+    "test:runner:full": "node scripts/test-runner.js full",
+    
+    "test:env:validate": "node scripts/validate-test-env.js",
+    "test:env:setup": "npm install && npm run test:env:validate"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.20",
