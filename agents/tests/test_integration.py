@@ -147,7 +147,7 @@ class TestJSONRPCAPIContracts:
                 "fisCompatible": True
             },
             "timestamp": "2024-01-01T12:00:00Z",
-            "includeForecast": True
+            "include_forecast": True
         }
         
         response = self._make_jsonrpc_request(
@@ -183,7 +183,7 @@ class TestJSONRPCAPIContracts:
                 },
                 "fisCompatible": True
             },
-            "includeStatus": True
+            "include_status": True
         }
         
         response = self._make_jsonrpc_request(

@@ -3,6 +3,7 @@
 import json
 import time
 import uuid
+from datetime import datetime
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -22,6 +23,15 @@ from agents.shared.logging_config import log_request_response
 
 
 logger = structlog.get_logger(__name__)
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles datetime objects."""
+    
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 
 class JSONRPCRequest(BaseModel):
@@ -105,7 +115,7 @@ class JSONRPCHandler:
                 )
                 
                 return Response(
-                    content=json.dumps(response_data),
+                    content=json.dumps(response_data, cls=DateTimeEncoder),
                     media_type="application/json",
                 )
                 
