@@ -11,6 +11,15 @@ const createMockContainer = (): HTMLElement => {
   const container = document.createElement('div');
   container.style.width = '800px';
   container.style.height = '600px';
+  
+  // Mock clientWidth and clientHeight since JSDOM doesn't calculate layout
+  Object.defineProperties(container, {
+    clientWidth: { value: 800, writable: true },
+    clientHeight: { value: 600, writable: true },
+    offsetWidth: { value: 800, writable: true },
+    offsetHeight: { value: 600, writable: true },
+  });
+  
   document.body.appendChild(container);
   return container;
 };

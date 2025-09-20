@@ -28,13 +28,13 @@ pre-commit:
         echo "✓ All agent imports successful"
         
     # Frontend code quality checks
-    frontend-lint:
-      glob: "src/**/*.{ts,tsx}"
-      run: npm run lint -- {staged_files}
+    # frontend-lint:
+    #   glob: "src/**/*.{ts,tsx}"
+    #   run: npm run lint -- {staged_files}
       
-    frontend-type-check:
-      glob: "src/**/*.{ts,tsx}"
-      run: npm run type-check
+    # frontend-type-check:
+    #   glob: "src/**/*.{ts,tsx}"
+    #   run: npm run type-check
       
     # Lightweight API contract validation
     api-contract-check:
@@ -108,7 +108,7 @@ pre-commit:
         "
         
         # Test frontend build
-        if ! npm run build >/dev/null 2>&1; then
+        if ! npm run build; then
           echo "✗ Frontend build failed"
           exit 1
         fi

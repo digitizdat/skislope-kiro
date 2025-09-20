@@ -6,13 +6,13 @@
   - Install jsdom and vitest coverage packages for comprehensive test environment
   - _Requirements: 1.1, 4.1_
 
-- [ ] 2. Create core test setup infrastructure
+- [x] 2. Create core test setup infrastructure
   - Write test setup utilities in tests/setup.ts for environment initialization
   - Implement WebGL context mock creation using canvas package
   - Create test environment teardown and cleanup utilities
   - _Requirements: 1.2, 1.3, 5.1_
 
-- [ ] 3. Implement WebGL and Three.js test mocking
+- [x] 3. Implement WebGL and Three.js test mocking
   - Create WebGL context mock that works with Three.js renderer in headless mode
   - Write test utilities for mocking Three.js scenes, cameras, and renderers
   - Implement mock WebGL operations for terrain rendering tests

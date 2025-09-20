@@ -1,0 +1,430 @@
+/**
+ * Core test setup infrastructure for frontend testing environment
+ * Provides WebGL context mocking, environment initialization, and cleanup utilities
+ */
+
+import { vi } from 'vitest';
+import { createCanvas } from 'canvas';
+// Use the main fake-indexeddb module
+import 'fake-indexeddb/auto';
+
+// Global test state management
+interface TestEnvironmentState {
+  webglContext: WebGLRenderingContext | null;
+  canvas: HTMLCanvasElement | null;
+  indexedDB: IDBFactory | null;
+  originalAPIs: Map<string, any>;
+  isInitialized: boolean;
+}
+
+const testState: TestEnvironmentState = {
+  webglContext: null,
+  canvas: null,
+  indexedDB: null,
+  originalAPIs: new Map(),
+  isInitialized: false
+};
+
+/**
+ * WebGL Context Mock Creation
+ * Creates a mock WebGL context using the canvas package for headless testing
+ */
+export function createWebGLContextMock(): WebGLRenderingContext {
+  // Create a canvas using the node-canvas package
+  const canvas = createCanvas(800, 600);
+  
+  // Mock WebGL context with essential methods for Three.js
+  const mockContext = {
+    canvas,
+    drawingBufferWidth: 800,
+    drawingBufferHeight: 600,
+    
+    // WebGL state management
+    enable: vi.fn(),
+    disable: vi.fn(),
+    clear: vi.fn(),
+    clearColor: vi.fn(),
+    clearDepth: vi.fn(),
+    viewport: vi.fn(),
+    
+    // Shader operations
+    createShader: vi.fn(() => ({})),
+    shaderSource: vi.fn(),
+    compileShader: vi.fn(),
+    getShaderParameter: vi.fn(() => true),
+    createProgram: vi.fn(() => ({})),
+    attachShader: vi.fn(),
+    linkProgram: vi.fn(),
+    getProgramParameter: vi.fn(() => true),
+    useProgram: vi.fn(),
+    
+    // Buffer operations
+    createBuffer: vi.fn(() => ({})),
+    bindBuffer: vi.fn(),
+    bufferData: vi.fn(),
+    
+    // Texture operations
+    createTexture: vi.fn(() => ({})),
+    bindTexture: vi.fn(),
+    texImage2D: vi.fn(),
+    texParameteri: vi.fn(),
+    generateMipmap: vi.fn(),
+    
+    // Attribute and uniform operations
+    getAttribLocation: vi.fn(() => 0),
+    getUniformLocation: vi.fn(() => ({})),
+    enableVertexAttribArray: vi.fn(),
+    vertexAttribPointer: vi.fn(),
+    uniform1f: vi.fn(),
+    uniform1i: vi.fn(),
+    uniform2f: vi.fn(),
+    uniform3f: vi.fn(),
+    uniform4f: vi.fn(),
+    uniformMatrix4fv: vi.fn(),
+    
+    // Drawing operations
+    drawArrays: vi.fn(),
+    drawElements: vi.fn(),
+    
+    // WebGL constants
+    VERTEX_SHADER: 35633,
+    FRAGMENT_SHADER: 35632,
+    ARRAY_BUFFER: 34962,
+    ELEMENT_ARRAY_BUFFER: 34963,
+    STATIC_DRAW: 35044,
+    TEXTURE_2D: 3553,
+    RGBA: 6408,
+    UNSIGNED_BYTE: 5121,
+    TEXTURE_MAG_FILTER: 10240,
+    TEXTURE_MIN_FILTER: 10241,
+    LINEAR: 9729,
+    TRIANGLES: 4,
+    DEPTH_TEST: 2929,
+    COLOR_BUFFER_BIT: 16384,
+    DEPTH_BUFFER_BIT: 256,
+    
+    // Extension support
+    getExtension: vi.fn(() => null),
+    getSupportedExtensions: vi.fn(() => []),
+    
+    // Error handling
+    getError: vi.fn(() => 0), // GL_NO_ERROR
+    
+    // Additional WebGL methods that Three.js might use
+    deleteBuffer: vi.fn(),
+    deleteTexture: vi.fn(),
+    deleteProgram: vi.fn(),
+    deleteShader: vi.fn(),
+    isBuffer: vi.fn(() => true),
+    isTexture: vi.fn(() => true),
+    isProgram: vi.fn(() => true),
+    isShader: vi.fn(() => true),
+    
+    // WebGL 2.0 methods (for compatibility)
+    createVertexArray: vi.fn(() => ({})),
+    bindVertexArray: vi.fn(),
+    deleteVertexArray: vi.fn(),
+  } as unknown as WebGLRenderingContext;
+  
+  return mockContext;
+}
+
+/**
+ * Setup WebGL environment for testing
+ * Mocks HTMLCanvasElement and WebGL context creation
+ */
+export function setupWebGLEnvironment(): void {
+  // Store original APIs
+  if (typeof window !== 'undefined') {
+    testState.originalAPIs.set('HTMLCanvasElement', window.HTMLCanvasElement);
+  }
+  
+  // Create mock canvas element
+  const mockCanvas = {
+    width: 800,
+    height: 600,
+    getContext: vi.fn((contextType: string) => {
+      if (contextType === 'webgl' || contextType === 'experimental-webgl') {
+        if (!testState.webglContext) {
+          testState.webglContext = createWebGLContextMock();
+        }
+        return testState.webglContext;
+      }
+      return null;
+    }),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    getBoundingClientRect: vi.fn(() => ({
+      left: 0,
+      top: 0,
+      width: 800,
+      height: 600,
+      right: 800,
+      bottom: 600,
+      x: 0,
+      y: 0,
+      toJSON: () => ({})
+    })),
+    style: {},
+    clientWidth: 800,
+    clientHeight: 600,
+    offsetWidth: 800,
+    offsetHeight: 600,
+  } as unknown as HTMLCanvasElement;
+  
+  testState.canvas = mockCanvas;
+  
+  // Mock document.createElement for canvas
+  if (typeof document !== 'undefined') {
+    const originalCreateElement = document.createElement;
+    testState.originalAPIs.set('createElement', originalCreateElement);
+    
+    document.createElement = vi.fn((tagName: string) => {
+      if (tagName.toLowerCase() === 'canvas') {
+        return mockCanvas;
+      }
+      return originalCreateElement.call(document, tagName);
+    }) as any;
+  }
+}
+
+/**
+ * Setup IndexedDB mock for CacheManager testing
+ */
+export function setupIndexedDBMock(): void {
+  // fake-indexeddb/auto should have already set up the globals
+  if (typeof window !== 'undefined') {
+    // Store original IndexedDB if it exists
+    if (window.indexedDB) {
+      testState.originalAPIs.set('indexedDB', window.indexedDB);
+    }
+    if (window.IDBKeyRange) {
+      testState.originalAPIs.set('IDBKeyRange', window.IDBKeyRange);
+    }
+    testState.indexedDB = window.indexedDB;
+  }
+  
+  if (typeof globalThis !== 'undefined' && (globalThis as any).indexedDB) {
+    testState.indexedDB = (globalThis as any).indexedDB;
+  }
+}
+
+/**
+ * Setup browser API mocks
+ */
+export function setupBrowserAPIMocks(): void {
+  if (typeof window !== 'undefined') {
+    // Store original APIs
+    testState.originalAPIs.set('localStorage', window.localStorage);
+    testState.originalAPIs.set('sessionStorage', window.sessionStorage);
+    testState.originalAPIs.set('fetch', window.fetch);
+    
+    // Create storage implementation with actual storage
+    const createStorageMock = () => {
+      const storage = new Map<string, string>();
+      return {
+        getItem: vi.fn((key: string) => storage.get(key) || null),
+        setItem: vi.fn((key: string, value: string) => {
+          storage.set(key, value);
+        }),
+        removeItem: vi.fn((key: string) => {
+          storage.delete(key);
+        }),
+        clear: vi.fn(() => {
+          storage.clear();
+        }),
+        get length() {
+          return storage.size;
+        },
+        key: vi.fn((index: number) => {
+          const keys = Array.from(storage.keys());
+          return keys[index] || null;
+        }),
+      };
+    };
+    
+    // Mock localStorage
+    const localStorageMock = createStorageMock();
+    
+    // Mock sessionStorage
+    const sessionStorageMock = createStorageMock();
+    
+    // Mock fetch
+    const fetchMock = vi.fn(() => 
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve(''),
+        blob: () => Promise.resolve(new Blob()),
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+      } as Response)
+    );
+    
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
+    
+    Object.defineProperty(window, 'sessionStorage', {
+      value: sessionStorageMock,
+      writable: true,
+    });
+    
+    Object.defineProperty(window, 'fetch', {
+      value: fetchMock,
+      writable: true,
+    });
+  }
+}
+
+/**
+ * Initialize complete test environment
+ */
+export async function initializeTestEnvironment(): Promise<void> {
+  if (testState.isInitialized) {
+    return;
+  }
+  
+  try {
+    // Setup all mock environments
+    setupWebGLEnvironment();
+    setupIndexedDBMock();
+    setupBrowserAPIMocks();
+    
+    // Ensure WebGL context is created
+    if (!testState.webglContext) {
+      testState.webglContext = createWebGLContextMock();
+    }
+    
+    // Mark as initialized
+    testState.isInitialized = true;
+    
+    console.log('Test environment initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize test environment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Cleanup and teardown test environment
+ */
+export async function teardownTestEnvironment(): Promise<void> {
+  try {
+    // Reset WebGL context
+    if (testState.webglContext) {
+      // Clear any WebGL state if needed
+      testState.webglContext = null;
+    }
+    
+    // Reset canvas
+    testState.canvas = null;
+    
+    // Reset IndexedDB
+    if (testState.indexedDB && typeof testState.indexedDB.deleteDatabase === 'function') {
+      // Clear any test databases
+      testState.indexedDB = null;
+    }
+    
+    // Restore original APIs
+    if (typeof window !== 'undefined') {
+      for (const [key, originalValue] of testState.originalAPIs) {
+        switch (key) {
+          case 'HTMLCanvasElement':
+            window.HTMLCanvasElement = originalValue;
+            break;
+          case 'createElement':
+            if (typeof document !== 'undefined') {
+              document.createElement = originalValue;
+            }
+            break;
+          case 'indexedDB':
+            window.indexedDB = originalValue;
+            break;
+          case 'IDBKeyRange':
+            window.IDBKeyRange = originalValue;
+            break;
+          case 'localStorage':
+            Object.defineProperty(window, 'localStorage', {
+              value: originalValue,
+              writable: true,
+            });
+            break;
+          case 'sessionStorage':
+            Object.defineProperty(window, 'sessionStorage', {
+              value: originalValue,
+              writable: true,
+            });
+            break;
+          case 'fetch':
+            window.fetch = originalValue;
+            break;
+        }
+      }
+    }
+    
+    // Clear stored APIs
+    testState.originalAPIs.clear();
+    
+    // Mark as not initialized
+    testState.isInitialized = false;
+    
+    console.log('Test environment cleaned up successfully');
+  } catch (error) {
+    console.error('Failed to cleanup test environment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Reset test environment between tests
+ */
+export function resetTestEnvironment(): void {
+  // Reset WebGL context state
+  if (testState.webglContext) {
+    // Reset any stateful mocks
+    Object.values(testState.webglContext).forEach(method => {
+      if (typeof method === 'function' && 'mockClear' in method) {
+        (method as any).mockClear();
+      }
+    });
+  }
+  
+  // Reset storage mocks
+  if (typeof window !== 'undefined') {
+    if (window.localStorage && 'clear' in window.localStorage) {
+      window.localStorage.clear();
+    }
+    if (window.sessionStorage && 'clear' in window.sessionStorage) {
+      window.sessionStorage.clear();
+    }
+  }
+  
+  // Reset IndexedDB mock state
+  if (testState.indexedDB) {
+    // Create fresh IndexedDB instance
+    setupIndexedDBMock();
+  }
+}
+
+/**
+ * Get current test environment state (for debugging)
+ */
+export function getTestEnvironmentState(): TestEnvironmentState {
+  return { ...testState };
+}
+
+/**
+ * Utility to check if WebGL context is available in test
+ */
+export function isWebGLAvailable(): boolean {
+  return testState.webglContext !== null;
+}
+
+/**
+ * Utility to check if IndexedDB is available in test
+ */
+export function isIndexedDBAvailable(): boolean {
+  return testState.indexedDB !== null;
+}
