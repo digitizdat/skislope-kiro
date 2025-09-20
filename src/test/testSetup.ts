@@ -297,6 +297,16 @@ export async function initializeTestEnvironment(): Promise<void> {
       testState.webglContext = createWebGLContextMock();
     }
     
+    // Initialize CacheManager for tests that need it
+    try {
+      const { cacheManager } = await import('../utils/CacheManager');
+      await cacheManager.initialize();
+      console.log('CacheManager initialized for tests');
+    } catch (error) {
+      console.warn('Could not initialize CacheManager in test environment:', error);
+      // Don't fail the test setup if CacheManager fails to initialize
+    }
+    
     // Mark as initialized
     testState.isInitialized = true;
     
@@ -312,6 +322,15 @@ export async function initializeTestEnvironment(): Promise<void> {
  */
 export async function teardownTestEnvironment(): Promise<void> {
   try {
+    // Close CacheManager if it was initialized
+    try {
+      const { cacheManager } = await import('../utils/CacheManager');
+      await cacheManager.close();
+      console.log('CacheManager closed');
+    } catch (error) {
+      console.warn('Could not close CacheManager:', error);
+    }
+    
     // Reset WebGL context
     if (testState.webglContext) {
       // Clear any WebGL state if needed

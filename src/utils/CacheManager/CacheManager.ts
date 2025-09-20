@@ -140,7 +140,10 @@ export class CacheManager {
     runId: string,
     gridSize: GridSize
   ): Promise<TerrainData | null> {
-    if (!this.db) throw new Error('Cache not initialized');
+    if (!this.db) {
+      this.missCount++;
+      return null;
+    }
 
     const key = this.generateTerrainKey(runId, gridSize);
     const transaction = this.db.transaction(['terrain'], 'readonly');
@@ -200,7 +203,10 @@ export class CacheManager {
   }
 
   async getCachedRunDefinition(runId: string): Promise<SkiRun | null> {
-    if (!this.db) throw new Error('Cache not initialized');
+    if (!this.db) {
+      this.missCount++;
+      return null;
+    }
 
     const key = this.generateRunKey(runId);
     const transaction = this.db.transaction(['runs'], 'readonly');
@@ -303,7 +309,10 @@ export class CacheManager {
     agentType: 'hill-metrics' | 'weather' | 'equipment',
     skiAreaId: string
   ): Promise<T | null> {
-    if (!this.db) throw new Error('Cache not initialized');
+    if (!this.db) {
+      this.missCount++;
+      return null;
+    }
 
     const key = this.generateAgentKey(agentType, skiAreaId);
     const transaction = this.db.transaction(['agents'], 'readonly');

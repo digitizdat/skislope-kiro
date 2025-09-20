@@ -1,5 +1,7 @@
 # Technology Stack
 
+> **⚠️ IMPORTANT**: Before marking any task as complete, ALL precommit checks must pass. See `.kiro/steering/task-completion-rules.md` for details.
+
 ## Core Technologies
 - **Frontend Framework**: React for UI components
 - **3D Rendering**: Three.js with WebGL for high-performance 3D graphics

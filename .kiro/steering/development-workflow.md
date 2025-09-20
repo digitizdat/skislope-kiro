@@ -1,5 +1,7 @@
 # Development Workflow Guidelines
 
+> **🚨 CRITICAL RULE**: See `.kiro/steering/task-completion-rules.md` - **Tasks are NOT complete until ALL precommit checks pass cleanly.** If precommit checks fail, the task remains `in_progress`.
+
 ## Critical Lessons Learned
 
 ### Dependency Management Disasters to Avoid
