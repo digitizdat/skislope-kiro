@@ -21,11 +21,41 @@ export {
 export {
   ThreeJSTestUtils,
   CacheTestUtils,
-  AsyncTestUtils,
+  DeferredPromiseUtils,
   NetworkTestUtils,
   ErrorTestUtils,
   PerformanceTestUtils,
 } from './testUtils';
+
+// Async operation test utilities
+export {
+  AsyncTestUtils,
+  TimingController,
+  AsyncTestPatterns,
+  waitFor,
+  waitForPromise,
+  waitForAll,
+  flushPromises,
+  flushAllPromises,
+  delay,
+  retry,
+  withTimeout,
+  installFakeTimers,
+  restoreTimers,
+  advanceTimers,
+  advanceToNextTimer,
+  runAllTimers,
+  getTimerCount,
+  clearAllTimers,
+  expectToCompleteWithin,
+  expectToTakeAtLeast,
+  expectToEventuallySucceed,
+  testConcurrency,
+  createTimingController,
+  getTestTimeout,
+  configureAsyncTests,
+  DEFAULT_ASYNC_CONFIG,
+} from './asyncTestUtils';
 
 // WebGL and Three.js mocking infrastructure
 export {

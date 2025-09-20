@@ -12,11 +12,12 @@ import {
   getTestEnvironmentState,
   ThreeJSTestUtils,
   CacheTestUtils,
-  AsyncTestUtils,
+  DeferredPromiseUtils,
   NetworkTestUtils,
   WebGLTestEnvironment,
   WebGLContextMock,
   ThreeJSTerrainMocks,
+  waitFor,
 } from './index';
 
 describe('Test Setup Infrastructure', () => {
@@ -180,18 +181,18 @@ describe('Async Test Utils', () => {
       condition = true;
     }, 100);
     
-    await AsyncTestUtils.waitFor(() => condition, 1000);
+    await waitFor(() => condition, { timeout: 1000 });
     expect(condition).toBe(true);
   });
   
   it('should timeout when condition is not met', async () => {
     await expect(
-      AsyncTestUtils.waitFor(() => false, 100)
-    ).rejects.toThrow('Condition not met within 100ms');
+      waitFor(() => false, { timeout: 100 })
+    ).rejects.toThrow('Condition was not met within timeout');
   });
   
   it('should create deferred promises', () => {
-    const deferred = AsyncTestUtils.createDeferred<string>();
+    const deferred = DeferredPromiseUtils.createDeferred<string>();
     
     expect(deferred.promise).toBeInstanceOf(Promise);
     expect(typeof deferred.resolve).toBe('function');

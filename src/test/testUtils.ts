@@ -263,44 +263,9 @@ export class CacheTestUtils {
 }
 
 /**
- * Async test utilities
+ * Deferred promise utility for testing
  */
-export class AsyncTestUtils {
-  /**
-   * Wait for a condition to be true with timeout
-   */
-  static async waitFor(
-    condition: () => boolean | Promise<boolean>,
-    timeout: number = 5000,
-    interval: number = 100
-  ): Promise<void> {
-    const startTime = Date.now();
-    
-    while (Date.now() - startTime < timeout) {
-      const result = await condition();
-      if (result) {
-        return;
-      }
-      await this.sleep(interval);
-    }
-    
-    throw new Error(`Condition not met within ${timeout}ms`);
-  }
-  
-  /**
-   * Sleep for specified milliseconds
-   */
-  static sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-  
-  /**
-   * Flush all pending promises
-   */
-  static async flushPromises(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 0));
-  }
-  
+export class DeferredPromiseUtils {
   /**
    * Create a deferred promise for testing
    */
