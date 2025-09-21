@@ -12,6 +12,7 @@ from rasterio.warp import Resampling as WarpResampling
 from rasterio.warp import reproject
 from shapely.geometry import box
 
+from agents.hill_metrics.data_sources import DataSourceManager
 from agents.hill_metrics.models import AspectData
 from agents.hill_metrics.models import ElevationData
 from agents.hill_metrics.models import GeographicBounds
@@ -33,16 +34,7 @@ class DEMProcessor:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache_manager = CacheManager(default_ttl=3600)  # 1 hour cache
-
-        # SRTM data sources (30m resolution)
-        self.srtm_base_url = (
-            "https://cloud.sdsc.edu/v1/AUTH_opentopography/Raster/SRTM_GL1"
-        )
-
-        # USGS 3DEP data sources (10m resolution for US)
-        self.usgs_base_url = (
-            "https://cloud.sdsc.edu/v1/AUTH_opentopography/Raster/USGS3DEP"
-        )
+        self.data_source_manager = DataSourceManager()
 
     async def process_terrain(
         self,
@@ -149,9 +141,6 @@ class DEMProcessor:
         Returns:
             Path to the DEM file
         """
-        # For this implementation, we'll use a simplified approach
-        # In production, you would implement proper SRTM/USGS data fetching
-
         cache_key = generate_cache_key(bounds.model_dump())
         dem_path = self.cache_dir / f"dem_{cache_key}.tif"
 
@@ -159,8 +148,44 @@ class DEMProcessor:
             logger.info("Using cached DEM data", path=str(dem_path))
             return dem_path
 
-        # Generate synthetic DEM data for demonstration
-        # In production, replace this with actual SRTM/USGS data download
+        # Try to fetch real DEM data using data source manager
+        data_source_info = await self.data_source_manager.fetch_dem_data(
+            bounds, dem_path
+        )
+
+        if data_source_info:
+            logger.info(
+                "Successfully fetched real DEM data",
+                source=data_source_info.name,
+                resolution=data_source_info.estimated_resolution,
+                path=str(dem_path),
+            )
+
+            # Validate that the downloaded file is actually a valid GeoTIFF
+            try:
+                import rasterio
+
+                with rasterio.open(dem_path) as src:
+                    # Just try to read basic info to validate format
+                    _ = src.bounds
+                    _ = src.crs
+                logger.info("Validated downloaded DEM file format", path=str(dem_path))
+                return dem_path
+            except Exception as e:
+                logger.warning(
+                    "Downloaded DEM file is invalid, falling back to synthetic data",
+                    path=str(dem_path),
+                    error=str(e),
+                )
+                # Remove invalid file
+                if dem_path.exists():
+                    dem_path.unlink()
+
+        # Fallback to synthetic data if real data unavailable or invalid
+        logger.warning(
+            "Real DEM data unavailable, generating synthetic data",
+            bounds=bounds.model_dump(),
+        )
         await self._generate_synthetic_dem(bounds, dem_path)
 
         return dem_path
@@ -439,3 +464,22 @@ class DEMProcessor:
             return SurfaceType.TREES, 0.5
         else:
             return SurfaceType.PACKED, 0.7
+
+    def get_data_source_status(self) -> dict:
+        """Get status of all available data sources."""
+        return self.data_source_manager.get_source_status()
+
+    async def validate_data_sources(self) -> dict:
+        """Validate that data sources are accessible."""
+        status = self.get_data_source_status()
+        validation_results = {}
+
+        for source_name, source_info in status.items():
+            validation_results[source_name] = {
+                "configured": True,
+                "has_credentials": source_info["has_api_key"],
+                "status": source_info["status"],
+                "accessible": source_info["status"] == "available",
+            }
+
+        return validation_results

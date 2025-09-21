@@ -328,6 +328,18 @@ async def detailed_health_check():
     return await health_checker.run_checks()
 
 
+@app.get("/data-sources/status")
+async def get_data_source_status():
+    """Get status of all data sources."""
+    return dem_processor.get_data_source_status()
+
+
+@app.get("/data-sources/validate")
+async def validate_data_sources():
+    """Validate data source accessibility."""
+    return await dem_processor.validate_data_sources()
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "agents.hill_metrics.server:app",
