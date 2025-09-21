@@ -184,6 +184,36 @@ When tests fail:
 3. **Check for mixed package managers** - Never mix `pip` and `uv`
 4. **Run tests in isolation** - Test individual modules to isolate issues
 
+### Python Coding Standards
+
+#### Exception Handling
+**MANDATORY: Use `contextlib.suppress` instead of `try/except Exception: pass`**
+
+```python
+# ❌ WRONG: Bare except with pass
+try:
+    risky_operation()
+except Exception:
+    pass  # Silent failure, unclear intent
+
+# ✅ CORRECT: Use contextlib.suppress
+from contextlib import suppress
+
+with suppress(Exception):
+    risky_operation()  # Clear intent to suppress exceptions
+```
+
+**Rationale**: 
+- More explicit about intent to suppress exceptions
+- Better readability and less verbose
+- Avoids linting warnings about bare except clauses
+- Pythonic and recommended by the community
+- Reference: https://stackoverflow.com/questions/34566806/why-use-contextlib-suppress-as-opposed-to-try-except-with-pass
+
+**When to use each pattern**:
+- Use `contextlib.suppress` when you want to ignore specific exceptions completely
+- Use `try/except` when you need to log errors, handle them differently, or use `finally` blocks
+
 ### Commit Message Guidelines
 Follow Conventional Commits specification (https://www.conventionalcommits.org/en/v1.0.0/):
 
