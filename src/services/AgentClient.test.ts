@@ -106,7 +106,7 @@ describe('AgentClient', () => {
 
   describe('JSON-RPC Communication', () => {
     it('should make successful hill metrics request', async () => {
-      const mockResponse = {
+      const expectedResponse = {
         data: {
           elevationData: [[100, 200], [150, 250]],
           slopeAngles: [[10, 15], [12, 18]],
@@ -116,14 +116,26 @@ describe('AgentClient', () => {
         metadata: {
           processingTime: 1500,
           dataSource: 'test',
-          lastUpdated: new Date(),
+          lastUpdated: expect.any(Date),
           gridResolution: GridSize.MEDIUM
         }
       };
 
+      // Mock backend response format (what the agent server returns)
+      const backendResponse = {
+        hill_metrics: {
+          elevationData: [[100, 200], [150, 250]],
+          slopeAngles: [[10, 15], [12, 18]],
+          aspectAngles: [[45, 90], [60, 120]],
+          surfaceTypes: [['powder', 'packed'], ['ice', 'moguls']]
+        },
+        processing_time_ms: 1500,
+        data_sources: ['test']
+      };
+
       const jsonRpcResponse = {
         jsonrpc: '2.0',
-        result: mockResponse,
+        result: backendResponse,
         id: 1
       };
 
@@ -141,7 +153,7 @@ describe('AgentClient', () => {
 
       const result = await agentClient.callHillMetricsAgent(request);
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual(expectedResponse);
     });
 
     it('should handle JSON-RPC error responses', async () => {
@@ -382,7 +394,7 @@ describe('AgentClient', () => {
     it('should switch to MCP protocol', async () => {
       agentClient.setProtocol(AgentType.HILL_METRICS, 'mcp');
 
-      const mockResponse = {
+      const expectedResponse = {
         data: {
           elevationData: [[100, 200], [150, 250]],
           slopeAngles: [[10, 15], [12, 18]],
@@ -392,9 +404,21 @@ describe('AgentClient', () => {
         metadata: {
           processingTime: 1500,
           dataSource: 'test',
-          lastUpdated: new Date(),
+          lastUpdated: expect.any(Date),
           gridResolution: GridSize.MEDIUM
         }
+      };
+
+      // Mock backend response format (what the agent server returns)
+      const backendResponse = {
+        hill_metrics: {
+          elevationData: [[100, 200], [150, 250]],
+          slopeAngles: [[10, 15], [12, 18]],
+          aspectAngles: [[45, 90], [60, 120]],
+          surfaceTypes: [['powder', 'packed'], ['ice', 'moguls']]
+        },
+        processing_time_ms: 1500,
+        data_sources: ['test']
       };
 
       // Mock successful MCP response (note: no jsonrpc field for MCP)
@@ -402,7 +426,7 @@ describe('AgentClient', () => {
         ok: true,
         status: 200,
         json: {
-          result: mockResponse,
+          result: backendResponse,
           id: 1
         }
       });
@@ -414,7 +438,7 @@ describe('AgentClient', () => {
 
       const result = await agentClient.callHillMetricsAgent(request);
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual(expectedResponse);
     });
 
     it('should enable MCP mode for all agents', () => {
