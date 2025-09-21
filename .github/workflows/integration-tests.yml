@@ -68,9 +68,9 @@ jobs:
     - name: Start agent servers for integration tests
       run: |
         # Start agents in background
-        uv run python -m agents.hill_metrics.server --port 8001 &
-        uv run python -m agents.weather.server --port 8002 &
-        uv run python -m agents.equipment.server --port 8003 &
+        uv run python -m agents.hill_metrics.server &
+        uv run python -m agents.weather.server &
+        uv run python -m agents.equipment.server &
         
         # Wait for agents to start
         sleep 10
