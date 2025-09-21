@@ -454,8 +454,13 @@ describe('AsyncTestPatterns', () => {
 
 describe('Configuration', () => {
   it('should use default configuration', () => {
+    const originalEnv = process.env.CI;
+    delete process.env.CI; // Ensure we're not in CI mode for this test
+    
     const timeout = getTestTimeout();
     expect(timeout).toBe(DEFAULT_ASYNC_CONFIG.defaultTimeout);
+    
+    process.env.CI = originalEnv; // Restore original value
   });
 
   it('should use CI timeout in CI environment', () => {
@@ -469,10 +474,15 @@ describe('Configuration', () => {
   });
 
   it('should allow custom configuration', () => {
+    const originalEnv = process.env.CI;
+    delete process.env.CI; // Ensure we're not in CI mode for this test
+    
     const customConfig = { defaultTimeout: 2000, ciTimeout: 8000 };
     configureAsyncTests(customConfig);
     
     const timeout = getTestTimeout(customConfig);
     expect(timeout).toBe(2000);
+    
+    process.env.CI = originalEnv; // Restore original value
   });
 });
