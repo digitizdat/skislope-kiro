@@ -8,6 +8,8 @@ import structlog
 import uvicorn
 from fastapi import FastAPI
 
+from agents.hill_metrics.models import GeographicBounds
+from agents.hill_metrics.models import GridSize
 from agents.hill_metrics.models import TerrainRequest
 from agents.hill_metrics.models import TerrainResponse
 from agents.hill_metrics.terrain_processor import DEMProcessor
@@ -78,8 +80,8 @@ async def get_hill_metrics(
     try:
         # Validate and create request
         terrain_request = TerrainRequest(
-            bounds=bounds,
-            grid_size=grid_size,
+            bounds=GeographicBounds(**bounds),
+            grid_size=GridSize(grid_size),
             include_surface_classification=include_surface_classification,
             include_safety_zones=include_safety_zones,
             include_course_markers=include_course_markers,
