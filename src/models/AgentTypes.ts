@@ -121,6 +121,8 @@ export interface WeatherRequest {
   timestamp?: Date;
   includeForecast?: boolean;
   forecastHours?: number;
+  includeHistorical?: boolean;
+  historicalDays?: number; // Must be >= 1 if includeHistorical is true
 }
 
 export interface WeatherResponse {

@@ -140,7 +140,9 @@ describe('AgentClient Integration Tests', () => {
         area: mockSkiArea,
         timestamp: new Date(),
         includeForecast: true,
-        forecastHours: 24
+        forecastHours: 24,
+        includeHistorical: true,
+        historicalDays: 7 // Valid value >= 1
       };
 
       const response = await agentClient.callWeatherAgent(request);
@@ -319,7 +321,9 @@ describe('AgentClient Integration Tests', () => {
       const weatherRequest: WeatherRequest = {
         area: mockSkiArea,
         timestamp: new Date(),
-        includeForecast: true
+        includeForecast: true,
+        includeHistorical: true,
+        historicalDays: 7 // Valid value >= 1
       };
 
       const weatherResponse = await agentClient.callWeatherAgent(weatherRequest);

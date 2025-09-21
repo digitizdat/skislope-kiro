@@ -187,8 +187,8 @@ export class AgentClient implements AgentClientInterface {
         timestamp: request.timestamp?.toISOString(),
         include_forecast: request.includeForecast ?? false,
         forecast_days: Math.ceil((request.forecastHours ?? 24) / 24), // Convert hours to days
-        include_historical: false,
-        historical_days: 0
+        include_historical: request.includeHistorical ?? false,
+        historical_days: request.historicalDays ?? 1 // Default to 1 to satisfy backend validation
       };
 
       let backendResponse: any;
