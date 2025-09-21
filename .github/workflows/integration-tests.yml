@@ -59,7 +59,7 @@ jobs:
         
     - name: Run frontend unit tests
       run: |
-        npm test -- --run --reporter=junit --outputFile=test-results/frontend-tests.xml
+        npm run test:ci:junit -- --outputFile=test-results/frontend-tests.xml
         
     - name: Build frontend
       run: |
