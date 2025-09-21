@@ -32,6 +32,7 @@
     
     "test:ci": "NODE_ENV=test CI=true vitest --run --reporter=verbose --coverage --outputFile.json=./test-results/results.json --outputFile.html=./test-results/report.html",
     "test:ci:unit": "NODE_ENV=test CI=true vitest --run --reporter=verbose --exclude='**/*.integration.test.*' --coverage",
+    "test:ci:junit": "NODE_ENV=test CI=true vitest --run --reporter=junit --exclude='**/*.integration.test.*'",
     "test:ci:integration": "NODE_ENV=test CI=true vitest run --reporter=verbose --testTimeout=15000 src/**/*.integration.test.ts",
     "test:ci:artifacts": "npm run test:ci && npm run ci:artifacts",
     
