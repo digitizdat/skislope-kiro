@@ -79,13 +79,31 @@ async def get_hill_metrics(
 
     try:
         # Validate and create request
+        logger.info(
+            f"Creating TerrainRequest with bounds={bounds}, grid_size={grid_size}"
+        )
+        try:
+            geographic_bounds = GeographicBounds(**bounds)
+            logger.info(f"GeographicBounds created successfully: {geographic_bounds}")
+        except Exception as e:
+            logger.error(f"Failed to create GeographicBounds: {e}")
+            raise
+
+        try:
+            grid_size_enum = GridSize(grid_size)
+            logger.info(f"GridSize enum created successfully: {grid_size_enum}")
+        except Exception as e:
+            logger.error(f"Failed to create GridSize enum: {e}")
+            raise
+
         terrain_request = TerrainRequest(
-            bounds=GeographicBounds(**bounds),
-            grid_size=GridSize(grid_size),
+            bounds=geographic_bounds,
+            grid_size=grid_size_enum,
             include_surface_classification=include_surface_classification,
             include_safety_zones=include_safety_zones,
             include_course_markers=include_course_markers,
         )
+        logger.info("TerrainRequest created successfully")
 
         # Process terrain data
         hill_metrics = await dem_processor.process_terrain(

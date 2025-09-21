@@ -19,7 +19,7 @@
     "test:coverage:watch": "NODE_ENV=test vitest --coverage --reporter=verbose",
     "test:coverage:threshold": "NODE_ENV=test vitest --run --coverage --reporter=verbose --coverage.thresholdAutoUpdate=false",
     
-    "test:integration": "NODE_ENV=test vitest run --reporter=verbose --testTimeout=10000 src/**/*.integration.test.ts",
+    "test:integration": "NODE_ENV=test vitest run --config=vitest.integration.config.ts --reporter=verbose",
     "test:performance": "NODE_ENV=test vitest run --reporter=verbose --logHeapUsage --testTimeout=15000 src/**/*.test.ts",
     
     "test:filter": "NODE_ENV=test vitest run --reporter=verbose",

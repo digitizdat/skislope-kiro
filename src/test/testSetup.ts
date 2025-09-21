@@ -233,6 +233,11 @@ export async function setupBrowserAPIMocks(): Promise<void> {
     testState.originalAPIs.set('Blob', globalThis.Blob);
     testState.originalAPIs.set('File', globalThis.File);
     testState.originalAPIs.set('URL', globalThis.URL);
+    
+    // Store the original fetch in a special location for integration tests
+    if (globalThis.fetch) {
+      (globalThis as any).__originalFetch = globalThis.fetch;
+    }
   }
   
   // Try to use comprehensive browser API mocks first, fallback to simple mocks

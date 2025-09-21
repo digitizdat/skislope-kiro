@@ -8,6 +8,7 @@ import {
   AgentClientInterface,
   JSONRPCRequest,
   JSONRPCResponse,
+  JSONRPCError,
   JSONRPCErrorCode,
   MCPRequest,
   MCPResponse,
@@ -523,6 +524,11 @@ export class AgentClient implements AgentClientInterface {
           (error as any).code = jsonResponse.error.code;
           (error as any).data = jsonResponse.error.data;
           throw error;
+        }
+
+        if (jsonResponse.error) {
+          const rpcError = jsonResponse.error as JSONRPCError;
+          throw new Error(`JSON-RPC Error: ${rpcError.message} (Code: ${rpcError.code})`);
         }
 
         if (!jsonResponse.result) {

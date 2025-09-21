@@ -9,6 +9,22 @@ import { HillMetricsRequest, WeatherRequest, EquipmentRequest } from '../models/
 import { SkiArea } from '../models/SkiArea';
 import { GridSize } from '../models/TerrainData';
 
+// For Node environment, we need to provide fetch if it's not available
+if (typeof globalThis.fetch === 'undefined') {
+  // Use node-fetch or undici for Node.js environments
+  try {
+    const { fetch } = await import('undici');
+    globalThis.fetch = fetch as any;
+  } catch {
+    try {
+      const fetch = (await import('node-fetch')).default;
+      globalThis.fetch = fetch as any;
+    } catch {
+      console.warn('No fetch implementation available - integration tests may fail');
+    }
+  }
+}
+
 // Mock ski area for testing
 const mockSkiArea: SkiArea = {
   id: 'test-area',
@@ -36,21 +52,20 @@ describe('AgentClient Integration Tests', () => {
   beforeAll(async () => {
     agentClient = createAgentClient();
     
-    // Initialize cache manager for tests
-    try {
-      const { cacheManager } = await import('../utils/CacheManager');
-      await cacheManager.initialize();
-    } catch (error) {
-      console.warn('Could not initialize cache manager:', error);
-    }
-    
     // Check if agents are running
     try {
+      console.log('🔍 Checking agent availability...');
       const healthChecks = await Promise.allSettled([
         fetch('http://localhost:8001/health'),
         fetch('http://localhost:8002/health'),
         fetch('http://localhost:8003/health')
       ]);
+      
+      console.log('Health check results:', healthChecks.map((result, i) => ({
+        port: 8001 + i,
+        status: result.status,
+        ok: result.status === 'fulfilled' ? result.value.ok : false
+      })));
       
       agentsAvailable = healthChecks.every(result => 
         result.status === 'fulfilled' && result.value.ok
