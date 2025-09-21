@@ -171,10 +171,10 @@ class JSONRPCHandler:
             handler = self.methods[request.method]
 
             # Call handler with parameters
-            if request.params:
-                result = await handler(**request.params)
-            else:
-                result = await handler()
+            params = request.params or {}
+            logger.info(f"Calling method '{request.method}' with params: {params}")
+            result = await handler(**params)
+            logger.info(f"Method '{request.method}' returned: {type(result)}")
 
             return {
                 "jsonrpc": "2.0",
