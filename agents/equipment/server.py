@@ -587,18 +587,8 @@ async def check_equipment_service() -> bool:
 health_checker.add_check("equipment_service", check_equipment_service)
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Application startup event."""
-    logger.info("Starting Equipment Agent")
-    performance_monitor.start_monitoring()
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown event."""
-    logger.info("Shutting down Equipment Agent")
-    performance_monitor.stop_monitoring()
+# Lifespan handlers are now managed by the shared jsonrpc module
+# The startup and shutdown logic is handled in the create_jsonrpc_app function
 
 
 # Add health check endpoint

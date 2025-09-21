@@ -1,10 +1,12 @@
 """Hill Metrics Agent server implementation."""
 
 import time
+from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
 import uvicorn
+from fastapi import FastAPI
 
 from agents.hill_metrics.models import TerrainRequest
 from agents.hill_metrics.models import TerrainResponse
@@ -19,19 +21,35 @@ from agents.shared.monitoring import PerformanceMonitor
 setup_logging()
 logger = structlog.get_logger(__name__)
 
-# Create FastAPI app with JSON-RPC support
-app, jsonrpc_handler = create_jsonrpc_app(
-    title="Hill Metrics Agent",
-    description="Topographical data processing and terrain analysis agent",
-)
-
-# Add MCP support
-mcp_handler = add_mcp_support(app, "hill_metrics")
-
 # Initialize components
 dem_processor = DEMProcessor()
 performance_monitor = PerformanceMonitor("hill_metrics")
 health_checker = HealthChecker("hill_metrics")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan context manager."""
+    # Startup
+    logger.info("Starting Hill Metrics Agent")
+    performance_monitor.start_monitoring()
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down Hill Metrics Agent")
+    performance_monitor.stop_monitoring()
+
+
+# Create FastAPI app with JSON-RPC support
+app, jsonrpc_handler = create_jsonrpc_app(
+    title="Hill Metrics Agent",
+    description="Topographical data processing and terrain analysis agent",
+    lifespan=lifespan,
+)
+
+# Add MCP support
+mcp_handler = add_mcp_support(app, "hill_metrics")
 
 
 # JSON-RPC Methods
@@ -281,20 +299,6 @@ async def check_dem_processor() -> bool:
 
 
 health_checker.add_check("dem_processor", check_dem_processor)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Application startup event."""
-    logger.info("Starting Hill Metrics Agent")
-    performance_monitor.start_monitoring()
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown event."""
-    logger.info("Shutting down Hill Metrics Agent")
-    performance_monitor.stop_monitoring()
 
 
 # Add health check endpoint

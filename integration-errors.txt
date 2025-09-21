@@ -1,0 +1,990 @@
+
+43s
+Run uv run python scripts/test_integration.py --ci-mode --output-dir=test-results
+  uv run python scripts/test_integration.py --ci-mode --output-dir=test-results
+  shell: /usr/bin/bash -e {0}
+  env:
+    pythonLocation: /opt/hostedtoolcache/Python/3.12.11/x64
+    PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.11/x64/lib/pkgconfig
+    Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.11/x64
+    Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.11/x64
+    Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.11/x64
+    LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.11/x64/lib
+    UV_CACHE_DIR: /home/runner/work/_temp/setup-uv-cache
+    CI: true
+    INTEGRATION_TEST_TIMEOUT: 300
+2025-09-21 02:15:16 [info     ] Starting comprehensive integration test suite...
+2025-09-21 02:15:16 [info     ] Starting agents for integration testing...
+2025-09-21 02:15:17,031 - INFO - HTTP Request: GET http://localhost:8001/health "HTTP/1.1 200 OK"
+2025-09-21 02:15:17,032 - INFO - HTTP Request: GET http://localhost:8002/health "HTTP/1.1 200 OK"
+2025-09-21 02:15:17,032 - INFO - HTTP Request: GET http://localhost:8003/health "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] All agents started successfully
+2025-09-21 02:15:17 [info     ] Running API contract tests...
+2025-09-21 02:15:17,059 - INFO - HTTP Request: POST http://localhost:8001/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getHillMetrics' exists at http://localhost:8001
+2025-09-21 02:15:17,061 - INFO - HTTP Request: POST http://localhost:8001/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getElevationProfile' exists at http://localhost:8001
+2025-09-21 02:15:17,063 - INFO - HTTP Request: POST http://localhost:8002/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getWeatherData' exists at http://localhost:8002
+2025-09-21 02:15:17,065 - INFO - HTTP Request: POST http://localhost:8002/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getSkiConditions' exists at http://localhost:8002
+2025-09-21 02:15:17,066 - INFO - HTTP Request: POST http://localhost:8002/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getWeatherAlerts' exists at http://localhost:8002
+2025-09-21 02:15:17,069 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getEquipmentData' exists at http://localhost:8003
+2025-09-21 02:15:17,071 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getLiftStatus' exists at http://localhost:8003
+2025-09-21 02:15:17,072 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getTrailConditions' exists at http://localhost:8003
+2025-09-21 02:15:17,075 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getFacilities' exists at http://localhost:8003
+2025-09-21 02:15:17 [info     ] API contract tests passed
+2025-09-21 02:15:17 [info     ] Running Python integration tests...
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-8.4.2, pluggy-1.6.0 -- /home/runner/work/skislope-kiro/skislope-kiro/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/runner/work/skislope-kiro/skislope-kiro
+configfile: pyproject.toml
+plugins: anyio-4.10.0, cov-7.0.0, asyncio-1.2.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 12 items
+agents/tests/test_integration.py::TestAgentServerIntegration::test_hill_metrics_health_check PASSED [  8%]
+agents/tests/test_integration.py::TestAgentServerIntegration::test_weather_health_check PASSED [ 16%]
+agents/tests/test_integration.py::TestAgentServerIntegration::test_equipment_health_check PASSED [ 25%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_hill_metrics_api_contract PASSED [ 33%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_weather_api_contract PASSED [ 41%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_equipment_api_contract PASSED [ 50%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_method_not_found_error PASSED [ 58%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_invalid_params_error PASSED [ 66%]
+agents/tests/test_integration.py::TestCORSIntegration::test_cors_preflight_request PASSED [ 75%]
+agents/tests/test_integration.py::TestCORSIntegration::test_cors_actual_request PASSED [ 83%]
+agents/tests/test_integration.py::TestEndToEndIntegration::test_terrain_loading_workflow PASSED [ 91%]
+agents/tests/test_integration.py::TestAgentMethodRegistry::test_all_expected_methods_registered PASSED [100%]
+=============================== warnings summary ===============================
+agents/equipment/server.py:590
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/equipment/server.py:590: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+  /home/runner/work/skislope-kiro/skislope-kiro/.venv/lib/python3.12/site-packages/fastapi/applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+agents/equipment/server.py:597
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/equipment/server.py:597: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+agents/hill_metrics/server.py:286
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/hill_metrics/server.py:286: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+agents/hill_metrics/server.py:293
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/hill_metrics/server.py:293: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+agents/weather/server.py:427
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/weather/server.py:427: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+agents/weather/server.py:434
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/weather/server.py:434: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 12 passed, 12 warnings in 0.84s ========================
+2025-09-21 02:15:18 [info     ] Python integration tests passed
+2025-09-21 02:15:18 [info     ] Running frontend integration tests...
+> alpine-ski-simulator@0.0.0 test:integration
+> NODE_ENV=test vitest run --reporter=verbose --testTimeout=10000 src/**/*.integration.test.ts
+ RUN  v3.2.4 /home/runner/work/skislope-kiro/skislope-kiro
+stdout | src/services/AgentClient.integration.test.ts
+Comprehensive browser API mocks installed
+stdout | src/services/AgentClient.integration.test.ts
+CacheManager initialized for tests
+Test environment initialized successfully
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method 9025ms 65 MB heap used
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully
+✅ Hill Metrics error handling verified
+ ✓ src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully 3005ms 65 MB heap used
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method 9012ms 42 MB heap used
+   → Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+   → Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+   → Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getHillMetrics' exists at http://localhost:8001
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getElevationProfile' exists at http://localhost:8001
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getWeatherData' exists at http://localhost:8002
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getSkiConditions' exists at http://localhost:8002
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getWeatherAlerts' exists at http://localhost:8002
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getEquipmentData' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getLiftStatus' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getTrailConditions' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getFacilities' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+🔄 Testing end-to-end terrain loading workflow...
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method 9012ms 42 MB heap used
+   → Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+   → Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+   → Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+ ✓ src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist 2ms 42 MB heap used
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods 4ms 42 MB heap used
+   → expected undefined to be defined
+   → expected undefined to be defined
+   → expected undefined to be defined
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests 3ms 42 MB heap used
+   → expected undefined to be truthy
+   → expected undefined to be truthy
+   → expected undefined to be truthy
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+🔄 Testing end-to-end terrain loading workflow...
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+🔄 Testing end-to-end terrain loading workflow...
+stdout | src/services/AgentClient.integration.test.ts
+CacheManager closed
+Test environment cleaned up successfully
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow 9015ms 42 MB heap used
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+ Test Files  1 failed (1)
+      Tests  6 failed | 2 passed (8)
+   Start at  02:15:18
+   Duration  40.18s (transform 205ms, setup 332ms, collect 70ms, tests 39.11s, environment 453ms, prepare 60ms)
+STDERR: stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:110:7
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:110:7
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+AgentError: Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callHillMetricsAgent src/services/AgentClient.ts:122:13
+    120|       return response;
+    121|     } catch (error) {
+    122|       throw new AgentError(AgentType.HILL_METRICS, endpoint, error);
+       |             ^
+    123|     }
+    124|   }
+ ❯ src/services/AgentClient.integration.test.ts:81:24
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'hill-metrics', endpoint: 'http://localhost:8001/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+AgentError: Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callWeatherAgent src/services/AgentClient.ts:200:13
+    198|         };
+    199|       }
+    200|       throw new AgentError(AgentType.WEATHER, endpoint, error);
+       |             ^
+    201|     }
+    202|   }
+ ❯ src/services/AgentClient.integration.test.ts:131:24
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'weather', endpoint: 'http://localhost:8002/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+AgentError: Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callEquipmentAgent src/services/AgentClient.ts:266:13
+    264|       return response;
+    265|     } catch (error) {
+    266|       throw new AgentError(AgentType.EQUIPMENT, endpoint, error);
+       |             ^
+    267|     }
+    268|   }
+ ❯ src/services/AgentClient.integration.test.ts:154:24
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'equipment', endpoint: 'http://localhost:8003/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods
+AssertionError: expected undefined to be defined
+ ❯ src/services/AgentClient.integration.test.ts:224:26
+    222|       
+    223|       const data = await response.json();
+    224|       expect(data.error).toBeDefined();
+       |                          ^
+    225|       expect(data.error.code).toBe(-32601); // Method not found
+    226|       
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests
+AssertionError: expected undefined to be truthy
+- Expected: 
+true
++ Received: 
+undefined
+ ❯ src/services/AgentClient.integration.test.ts:249:76
+    247| 
+    248|       expect(preflightResponse.ok).toBe(true);
+    249|       expect(preflightResponse.headers.get('access-control-allow-origi…
+       |                                                                            ^
+    250|       
+    251|       console.log('✅ CORS preflight verified');
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+AgentError: Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callHillMetricsAgent src/services/AgentClient.ts:122:13
+    120|       return response;
+    121|     } catch (error) {
+    122|       throw new AgentError(AgentType.HILL_METRICS, endpoint, error);
+       |             ^
+    123|     }
+    124|   }
+ ❯ src/services/AgentClient.integration.test.ts:299:35
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'hill-metrics', endpoint: 'http://localhost:8001/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/18]⎯
+2025-09-21 02:15:59 [error    ] Frontend integration tests failed return_code=1
+2025-09-21 02:15:59 [error    ] ❌ Some integration tests failed (2/3)
+2025-09-21 02:15:59 [info     ] Stopping agents...
+Error: Process completed with exit code 1.
+Run uv run python scripts/test_integration.py --ci-mode --output-dir=test-results
+  uv run python scripts/test_integration.py --ci-mode --output-dir=test-results
+  shell: /usr/bin/bash -e {0}
+  env:
+    pythonLocation: /opt/hostedtoolcache/Python/3.12.11/x64
+    PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.11/x64/lib/pkgconfig
+    Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.11/x64
+    Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.11/x64
+    Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.11/x64
+    LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.11/x64/lib
+    UV_CACHE_DIR: /home/runner/work/_temp/setup-uv-cache
+    CI: true
+    INTEGRATION_TEST_TIMEOUT: 300
+2025-09-21 02:15:16 [info     ] Starting comprehensive integration test suite...
+2025-09-21 02:15:16 [info     ] Starting agents for integration testing...
+2025-09-21 02:15:17,031 - INFO - HTTP Request: GET http://localhost:8001/health "HTTP/1.1 200 OK"
+2025-09-21 02:15:17,032 - INFO - HTTP Request: GET http://localhost:8002/health "HTTP/1.1 200 OK"
+2025-09-21 02:15:17,032 - INFO - HTTP Request: GET http://localhost:8003/health "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] All agents started successfully
+2025-09-21 02:15:17 [info     ] Running API contract tests...
+2025-09-21 02:15:17,059 - INFO - HTTP Request: POST http://localhost:8001/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getHillMetrics' exists at http://localhost:8001
+2025-09-21 02:15:17,061 - INFO - HTTP Request: POST http://localhost:8001/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getElevationProfile' exists at http://localhost:8001
+2025-09-21 02:15:17,063 - INFO - HTTP Request: POST http://localhost:8002/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getWeatherData' exists at http://localhost:8002
+2025-09-21 02:15:17,065 - INFO - HTTP Request: POST http://localhost:8002/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getSkiConditions' exists at http://localhost:8002
+2025-09-21 02:15:17,066 - INFO - HTTP Request: POST http://localhost:8002/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getWeatherAlerts' exists at http://localhost:8002
+2025-09-21 02:15:17,069 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getEquipmentData' exists at http://localhost:8003
+2025-09-21 02:15:17,071 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getLiftStatus' exists at http://localhost:8003
+2025-09-21 02:15:17,072 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getTrailConditions' exists at http://localhost:8003
+2025-09-21 02:15:17,075 - INFO - HTTP Request: POST http://localhost:8003/jsonrpc "HTTP/1.1 200 OK"
+2025-09-21 02:15:17 [info     ] ✅ Method 'getFacilities' exists at http://localhost:8003
+2025-09-21 02:15:17 [info     ] API contract tests passed
+2025-09-21 02:15:17 [info     ] Running Python integration tests...
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-8.4.2, pluggy-1.6.0 -- /home/runner/work/skislope-kiro/skislope-kiro/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/runner/work/skislope-kiro/skislope-kiro
+configfile: pyproject.toml
+plugins: anyio-4.10.0, cov-7.0.0, asyncio-1.2.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 12 items
+agents/tests/test_integration.py::TestAgentServerIntegration::test_hill_metrics_health_check PASSED [  8%]
+agents/tests/test_integration.py::TestAgentServerIntegration::test_weather_health_check PASSED [ 16%]
+agents/tests/test_integration.py::TestAgentServerIntegration::test_equipment_health_check PASSED [ 25%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_hill_metrics_api_contract PASSED [ 33%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_weather_api_contract PASSED [ 41%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_equipment_api_contract PASSED [ 50%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_method_not_found_error PASSED [ 58%]
+agents/tests/test_integration.py::TestJSONRPCAPIContracts::test_invalid_params_error PASSED [ 66%]
+agents/tests/test_integration.py::TestCORSIntegration::test_cors_preflight_request PASSED [ 75%]
+agents/tests/test_integration.py::TestCORSIntegration::test_cors_actual_request PASSED [ 83%]
+agents/tests/test_integration.py::TestEndToEndIntegration::test_terrain_loading_workflow PASSED [ 91%]
+agents/tests/test_integration.py::TestAgentMethodRegistry::test_all_expected_methods_registered PASSED [100%]
+=============================== warnings summary ===============================
+agents/equipment/server.py:590
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/equipment/server.py:590: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4495
+  /home/runner/work/skislope-kiro/skislope-kiro/.venv/lib/python3.12/site-packages/fastapi/applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+agents/equipment/server.py:597
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/equipment/server.py:597: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+agents/hill_metrics/server.py:286
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/hill_metrics/server.py:286: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+agents/hill_metrics/server.py:293
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/hill_metrics/server.py:293: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+agents/weather/server.py:427
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/weather/server.py:427: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+agents/weather/server.py:434
+  /home/runner/work/skislope-kiro/skislope-kiro/agents/weather/server.py:434: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 12 passed, 12 warnings in 0.84s ========================
+2025-09-21 02:15:18 [info     ] Python integration tests passed
+2025-09-21 02:15:18 [info     ] Running frontend integration tests...
+> alpine-ski-simulator@0.0.0 test:integration
+> NODE_ENV=test vitest run --reporter=verbose --testTimeout=10000 src/**/*.integration.test.ts
+ RUN  v3.2.4 /home/runner/work/skislope-kiro/skislope-kiro
+stdout | src/services/AgentClient.integration.test.ts
+Comprehensive browser API mocks installed
+stdout | src/services/AgentClient.integration.test.ts
+CacheManager initialized for tests
+Test environment initialized successfully
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method 9025ms 65 MB heap used
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully
+✅ Hill Metrics error handling verified
+ ✓ src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully 3005ms 65 MB heap used
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method 9012ms 42 MB heap used
+   → Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+   → Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+   → Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getHillMetrics' exists at http://localhost:8001
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getElevationProfile' exists at http://localhost:8001
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getWeatherData' exists at http://localhost:8002
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getSkiConditions' exists at http://localhost:8002
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getWeatherAlerts' exists at http://localhost:8002
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getEquipmentData' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getLiftStatus' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getTrailConditions' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist
+✅ Method 'getFacilities' exists at http://localhost:8003
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+🔄 Testing end-to-end terrain loading workflow...
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method 9012ms 42 MB heap used
+   → Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+   → Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+   → Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+ ✓ src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should verify all expected methods exist 2ms 42 MB heap used
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods 4ms 42 MB heap used
+   → expected undefined to be defined
+   → expected undefined to be defined
+   → expected undefined to be defined
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests 3ms 42 MB heap used
+   → expected undefined to be truthy
+   → expected undefined to be truthy
+   → expected undefined to be truthy
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+🔄 Testing end-to-end terrain loading workflow...
+stdout | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+🔄 Testing end-to-end terrain loading workflow...
+stdout | src/services/AgentClient.integration.test.ts
+CacheManager closed
+Test environment cleaned up successfully
+ × src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow 9015ms 42 MB heap used
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+   → Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+ Test Files  1 failed (1)
+      Tests  6 failed | 2 passed (8)
+   Start at  02:15:18
+   Duration  40.18s (transform 205ms, setup 332ms, collect 70ms, tests 39.11s, environment 453ms, prepare 60ms)
+STDERR: stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:110:7
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should handle hill metrics errors gracefully
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:110:7
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 1/3), retrying in 2000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+stderr | src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+Agent request failed (attempt 2/3), retrying in 4000ms: Error: No result in JSON-RPC response
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17
+    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)
+    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)
+    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)
+    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35
+    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Hill Metrics Agent Contract > should successfully call getHillMetrics method
+AgentError: Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callHillMetricsAgent src/services/AgentClient.ts:122:13
+    120|       return response;
+    121|     } catch (error) {
+    122|       throw new AgentError(AgentType.HILL_METRICS, endpoint, error);
+       |             ^
+    123|     }
+    124|   }
+ ❯ src/services/AgentClient.integration.test.ts:81:24
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'hill-metrics', endpoint: 'http://localhost:8001/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:81:24\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Weather Agent Contract > should successfully call getWeatherData method
+AgentError: Agent weather at http://localhost:8002/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callWeatherAgent src/services/AgentClient.ts:200:13
+    198|         };
+    199|       }
+    200|       throw new AgentError(AgentType.WEATHER, endpoint, error);
+       |             ^
+    201|     }
+    202|   }
+ ❯ src/services/AgentClient.integration.test.ts:131:24
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'weather', endpoint: 'http://localhost:8002/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callWeatherAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:163:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:131:24\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Equipment Agent Contract > should successfully call getEquipmentData method
+AgentError: Agent equipment at http://localhost:8003/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callEquipmentAgent src/services/AgentClient.ts:266:13
+    264|       return response;
+    265|     } catch (error) {
+    266|       throw new AgentError(AgentType.EQUIPMENT, endpoint, error);
+       |             ^
+    267|     }
+    268|   }
+ ❯ src/services/AgentClient.integration.test.ts:154:24
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'equipment', endpoint: 'http://localhost:8003/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callEquipmentAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:241:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:154:24\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > Method Name Contract Verification > should fail for non-existent methods
+AssertionError: expected undefined to be defined
+ ❯ src/services/AgentClient.integration.test.ts:224:26
+    222|       
+    223|       const data = await response.json();
+    224|       expect(data.error).toBeDefined();
+       |                          ^
+    225|       expect(data.error.code).toBe(-32601); // Method not found
+    226|       
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > CORS Configuration > should allow cross-origin requests
+AssertionError: expected undefined to be truthy
+- Expected: 
+true
++ Received: 
+undefined
+ ❯ src/services/AgentClient.integration.test.ts:249:76
+    247| 
+    248|       expect(preflightResponse.ok).toBe(true);
+    249|       expect(preflightResponse.headers.get('access-control-allow-origi…
+       |                                                                            ^
+    250|       
+    251|       console.log('✅ CORS preflight verified');
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/18]⎯
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+ FAIL  src/services/AgentClient.integration.test.ts > AgentClient Integration Tests > End-to-End Terrain Loading > should complete full terrain loading workflow
+AgentError: Agent hill-metrics at http://localhost:8001/jsonrpc failed: No result in JSON-RPC response
+ ❯ AgentClient.callHillMetricsAgent src/services/AgentClient.ts:122:13
+    120|       return response;
+    121|     } catch (error) {
+    122|       throw new AgentError(AgentType.HILL_METRICS, endpoint, error);
+       |             ^
+    123|     }
+    124|   }
+ ❯ src/services/AgentClient.integration.test.ts:299:35
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { agentType: 'hill-metrics', endpoint: 'http://localhost:8001/jsonrpc', originalError: { stack: 'Error: No result in JSON-RPC response\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:452:17\n    at AgentClient.executeWithRetry (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:541:16)\n    at AgentClient.callJSONRPCAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:422:12)\n    at AgentClient.callHillMetricsAgent (/home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.ts:97:20)\n    at /home/runner/work/skislope-kiro/skislope-kiro/src/services/AgentClient.integration.test.ts:299:35\n    at file:///home/runner/work/skislope-kiro/skislope-kiro/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20', message: 'No result in JSON-RPC response', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, code: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/18]⎯
+2025-09-21 02:15:59 [error    ] Frontend integration tests failed return_code=1
+2025-09-21 02:15:59 [error    ] ❌ Some integration tests failed (2/3)
+2025-09-21 02:15:59 [info     ] Stopping agents...
+Error: Process completed with exit code 1.

@@ -238,21 +238,35 @@ class JSONRPCHandler:
         return error_response
 
 
-def create_jsonrpc_app(title: str, description: str) -> tuple[FastAPI, JSONRPCHandler]:
+def create_jsonrpc_app(
+    title: str, description: str, lifespan=None
+) -> tuple[FastAPI, JSONRPCHandler]:
     """
     Create a FastAPI app with JSON-RPC support.
 
     Args:
         title: Application title
         description: Application description
+        lifespan: Optional lifespan context manager
 
     Returns:
         Tuple of (FastAPI app, JSONRPCHandler)
     """
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def default_lifespan(app: FastAPI):
+        # Startup
+        logger.info(f"Starting {title}")
+        yield
+        # Shutdown
+        logger.info(f"Shutting down {title}")
+
     app = FastAPI(
         title=title,
         description=description,
         version="1.0.0",
+        lifespan=lifespan or default_lifespan,
     )
 
     # Add CORS middleware to allow frontend requests

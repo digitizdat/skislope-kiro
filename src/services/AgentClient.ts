@@ -26,6 +26,7 @@ import {
   DEFAULT_RETRY_CONFIG,
   AgentConfiguration
 } from '../models/AgentTypes';
+import { GridSize } from '../models/TerrainData';
 import { cacheManager } from '../utils/CacheManager';
 
 /**
@@ -85,22 +86,45 @@ export class AgentClient implements AgentClientInterface {
         };
       }
 
-      let response: HillMetricsResponse;
+      // Transform frontend request to backend format
+      const backendRequest = {
+        bounds: {
+          north: request.area.bounds.northEast.lat,
+          south: request.area.bounds.southWest.lat,
+          east: request.area.bounds.northEast.lng,
+          west: request.area.bounds.southWest.lng
+        },
+        grid_size: this.mapGridSizeToBackend(request.gridSize),
+        include_surface_classification: request.includeAnalysis ?? true
+      };
+
+      let backendResponse: any;
       if (protocol === 'mcp') {
-        response = await this.callMCPAgent<HillMetricsRequest, HillMetricsResponse>(
+        backendResponse = await this.callMCPAgent<any, any>(
           endpoint,
           'getHillMetrics',
-          request,
+          backendRequest,
           timeout
         );
       } else {
-        response = await this.callJSONRPCAgent<HillMetricsRequest, HillMetricsResponse>(
+        backendResponse = await this.callJSONRPCAgent<any, any>(
           endpoint,
           'getHillMetrics',
-          request,
+          backendRequest,
           timeout
         );
       }
+
+      // Transform backend response to frontend format
+      const response: HillMetricsResponse = {
+        data: backendResponse.hill_metrics,
+        metadata: {
+          processingTime: backendResponse.processing_time_ms,
+          dataSource: backendResponse.data_sources?.join(', ') || 'unknown',
+          lastUpdated: new Date(),
+          gridResolution: request.gridSize
+        }
+      };
 
       // Cache the response
       if (response.data) {
@@ -151,22 +175,48 @@ export class AgentClient implements AgentClientInterface {
         };
       }
 
-      let response: WeatherResponse;
+      // Transform frontend request to backend format
+      const backendRequest = {
+        area: {
+          id: request.area.id,
+          name: request.area.name,
+          bounds: request.area.bounds,
+          location: request.area.location
+        },
+        timestamp: request.timestamp?.toISOString(),
+        include_forecast: request.includeForecast ?? false,
+        forecast_days: Math.ceil((request.forecastHours ?? 24) / 24), // Convert hours to days
+        include_historical: false,
+        historical_days: 0
+      };
+
+      let backendResponse: any;
       if (protocol === 'mcp') {
-        response = await this.callMCPAgent<WeatherRequest, WeatherResponse>(
+        backendResponse = await this.callMCPAgent<any, any>(
           endpoint,
           'getWeatherData',
-          request,
+          backendRequest,
           timeout
         );
       } else {
-        response = await this.callJSONRPCAgent<WeatherRequest, WeatherResponse>(
+        backendResponse = await this.callJSONRPCAgent<any, any>(
           endpoint,
           'getWeatherData',
-          request,
+          backendRequest,
           timeout
         );
       }
+
+      // Transform backend response to frontend format
+      const response: WeatherResponse = {
+        current: backendResponse.current,
+        forecast: backendResponse.forecast,
+        metadata: {
+          source: backendResponse.data_source || 'unknown',
+          lastUpdated: new Date(),
+          accuracy: 0.9 // Default accuracy
+        }
+      };
 
       // Cache the response
       if (response.current) {
@@ -229,22 +279,49 @@ export class AgentClient implements AgentClientInterface {
         };
       }
 
-      let response: EquipmentResponse;
+      // Transform frontend request to backend format
+      const backendRequest = {
+        area: {
+          id: request.area.id,
+          name: request.area.name,
+          bounds: request.area.bounds,
+          location: request.area.location
+        },
+        include_status: request.includeStatus ?? true,
+        equipment_types: request.equipmentTypes ?? []
+      };
+
+      let backendResponse: any;
       if (protocol === 'mcp') {
-        response = await this.callMCPAgent<EquipmentRequest, EquipmentResponse>(
+        backendResponse = await this.callMCPAgent<any, any>(
           endpoint,
           'getEquipmentData',
-          request,
+          backendRequest,
           timeout
         );
       } else {
-        response = await this.callJSONRPCAgent<EquipmentRequest, EquipmentResponse>(
+        backendResponse = await this.callJSONRPCAgent<any, any>(
           endpoint,
           'getEquipmentData',
-          request,
+          backendRequest,
           timeout
         );
       }
+
+      // Transform backend response to frontend format
+      const response: EquipmentResponse = {
+        data: {
+          lifts: backendResponse.lifts || [],
+          trails: backendResponse.trails || [],
+          facilities: backendResponse.facilities || [],
+          safetyEquipment: backendResponse.safety_equipment || []
+        },
+        metadata: {
+          lastUpdated: new Date(backendResponse.last_updated || new Date()),
+          source: 'agent',
+          statusAccuracy: 0.95
+        }
+      };
 
       // Cache the response
       if (response.data) {
@@ -585,6 +662,24 @@ export class AgentClient implements AgentClientInterface {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Map frontend GridSize enum to backend string format
+   */
+  private mapGridSizeToBackend(gridSize: GridSize): string {
+    switch (gridSize) {
+      case GridSize.SMALL:
+        return '32x32';
+      case GridSize.MEDIUM:
+        return '64x64';
+      case GridSize.LARGE:
+        return '96x96';
+      case GridSize.EXTRA_LARGE:
+        return '128x128';
+      default:
+        return '64x64';
+    }
   }
 }
 

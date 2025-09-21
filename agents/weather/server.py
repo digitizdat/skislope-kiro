@@ -1,11 +1,13 @@
 """Weather Agent server implementation."""
 
 import time
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any
 
 import structlog
 import uvicorn
+from fastapi import FastAPI
 
 from agents.shared.jsonrpc import create_jsonrpc_app
 from agents.shared.logging_config import setup_logging
@@ -22,19 +24,35 @@ from agents.weather.weather_service import WeatherService
 setup_logging()
 logger = structlog.get_logger(__name__)
 
-# Create FastAPI app with JSON-RPC support
-app, jsonrpc_handler = create_jsonrpc_app(
-    title="Weather Agent",
-    description="Real-time and historical weather data agent for ski areas",
-)
-
-# Add MCP support
-mcp_handler = add_mcp_support(app, "weather")
-
 # Initialize components
 weather_service = WeatherService()
 performance_monitor = PerformanceMonitor("weather")
 health_checker = HealthChecker("weather")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan context manager."""
+    # Startup
+    logger.info("Starting Weather Agent")
+    performance_monitor.start_monitoring()
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down Weather Agent")
+    performance_monitor.stop_monitoring()
+
+
+# Create FastAPI app with JSON-RPC support
+app, jsonrpc_handler = create_jsonrpc_app(
+    title="Weather Agent",
+    description="Real-time and historical weather data agent for ski areas",
+    lifespan=lifespan,
+)
+
+# Add MCP support
+mcp_handler = add_mcp_support(app, "weather")
 
 
 # JSON-RPC Methods
@@ -422,20 +440,6 @@ async def check_weather_service() -> bool:
 
 
 health_checker.add_check("weather_service", check_weather_service)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Application startup event."""
-    logger.info("Starting Weather Agent")
-    performance_monitor.start_monitoring()
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown event."""
-    logger.info("Shutting down Weather Agent")
-    performance_monitor.stop_monitoring()
 
 
 # Add health check endpoint
