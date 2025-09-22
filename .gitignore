@@ -285,3 +285,4 @@ temp/
 test-results/
 test_results/
 
+session-environment.sh

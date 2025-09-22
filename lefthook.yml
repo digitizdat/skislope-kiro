@@ -5,6 +5,10 @@ pre-commit:
   parallel: true
   
   commands:
+    # Check for secrets
+    git-secrets:
+      run: git secrets --pre_commit_hook -- {staged_files}
+
     # Python code quality checks
     python-format:
       glob: "*.py"
@@ -175,3 +179,11 @@ commit-msg:
         fi
         
         echo "✓ Commit message format is valid"
+
+    git-secrets:
+      run: git secrets --commit_msg_hook -- {staged_files}
+
+prepare-commit-msg:
+  commands:
+    git-secrets:
+      run: git secrets --prepare_commit_msg_hook -- {staged_files}
