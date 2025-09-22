@@ -121,11 +121,13 @@ class OpenTopographySRTMSource(DEMDataSource):
                     env_var=self.config.api_key_env_var,
                 )
                 return False
+            else:
+                logger.info("Loaded API key for OpenTopography")
 
-            # Construct API URL for SRTM GL1 (30m)
-            url = f"{self.config.api_endpoint}/SRTM_GL1"
+            # Construct API URL for SRTM GL1 (30m) using correct OpenTopography API
+            url = "https://portal.opentopography.org/API/globaldem"
             params = {
-                "demtype": "SRTM_GL1",
+                "demtype": "SRTMGL1",  # Correct parameter name from API docs
                 "south": bounds.south,
                 "north": bounds.north,
                 "west": bounds.west,
@@ -301,16 +303,9 @@ class EUDEMSource(DEMDataSource):
 
     def check_coverage(self, bounds: GeographicBounds) -> float:
         """EU-DEM covers Europe and surrounding areas."""
-        # Simplified coverage check for Europe
-        if (
-            bounds.west >= -25
-            and bounds.east <= 45
-            and bounds.south >= 26
-            and bounds.north <= 72
-        ):
-            return 1.0  # Full coverage for Europe
-        else:
-            return 0.0  # No coverage outside Europe
+        # Temporarily disable EU-DEM due to API issues
+        # TODO: Fix EU-DEM API implementation
+        return 0.0  # Disabled until API is fixed
 
 
 class CredentialManager:
@@ -361,7 +356,7 @@ class DataSourceManager:
         # OpenTopography SRTM (Global)
         srtm_config = DataSourceConfig(
             name="OpenTopography SRTM",
-            api_endpoint="https://cloud.sdsc.edu/v1/AUTH_opentopography/Raster",
+            api_endpoint="https://portal.opentopography.org/API",
             api_key_env_var="OPENTOPOGRAPHY_API_KEY",
             rate_limit_per_hour=100,
             max_area_km2=1000,

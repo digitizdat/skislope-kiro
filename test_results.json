@@ -1,0 +1,92 @@
+{
+  "timestamp": 1758508565.37472,
+  "agents": {
+    "hill_metrics": {
+      "agent": "hill_metrics",
+      "name": "Hill Metrics Agent",
+      "url": "http://localhost:8001",
+      "tests": {
+        "health": {
+          "agent": "hill_metrics",
+          "test": "health_check",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        },
+        "jsonrpc": {
+          "agent": "hill_metrics",
+          "test": "jsonrpc_request",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        },
+        "mcp": {
+          "agent": "hill_metrics",
+          "test": "mcp_tools",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        }
+      },
+      "overall_success": false
+    },
+    "weather": {
+      "agent": "weather",
+      "name": "Weather Agent",
+      "url": "http://localhost:8002",
+      "tests": {
+        "health": {
+          "agent": "weather",
+          "test": "health_check",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        },
+        "jsonrpc": {
+          "agent": "weather",
+          "test": "jsonrpc_request",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        },
+        "mcp": {
+          "agent": "weather",
+          "test": "mcp_tools",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        }
+      },
+      "overall_success": false
+    },
+    "equipment": {
+      "agent": "equipment",
+      "name": "Equipment Agent",
+      "url": "http://localhost:8003",
+      "tests": {
+        "health": {
+          "agent": "equipment",
+          "test": "health_check",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        },
+        "jsonrpc": {
+          "agent": "equipment",
+          "test": "jsonrpc_request",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        },
+        "mcp": {
+          "agent": "equipment",
+          "test": "mcp_tools",
+          "success": false,
+          "response_time_ms": null,
+          "error": "All connection attempts failed"
+        }
+      },
+      "overall_success": false
+    }
+  }
+}

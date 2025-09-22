@@ -1,0 +1,29 @@
+2025-09-21T18:46:50.885514Z [info     ] Calling method 'getHillMetrics' with params: {'bounds': {'north': 45.95, 'south': 45.88, 'east': 6.92, 'west': 6.82}, 'grid_size': '32x32'}
+2025-09-21T18:46:50.885574Z [info     ] Creating TerrainRequest with bounds={'north': 45.95, 'south': 45.88, 'east': 6.92, 'west': 6.82}, grid_size=32x32
+2025-09-21T18:46:50.885607Z [info     ] GeographicBounds created successfully: north=45.95 south=45.88 east=6.92 west=6.82
+2025-09-21T18:46:50.885630Z [info     ] GridSize enum created successfully: GridSize.SMALL
+2025-09-21T18:46:50.885647Z [info     ] TerrainRequest created successfully
+2025-09-21T18:46:50.885826Z [info     ] Selected best data source      coverage=1.0 priority=2 resolution=25.0 source=eu_dem
+2025-09-21T18:46:50.885851Z [info     ] Attempting to fetch data from eu_dem
+2025-09-21T18:46:53.196739Z [info     ] Successfully fetched EU-DEM data bounds={'north': 45.95, 'south': 45.88, 'east': 6.92, 'west': 6.82} output_path=cache/dem/dem_7424eaf44300dbb57f34aab8ced908f4d444ec270cf4a6eb98fb6d66e8d51eef.tif
+2025-09-21T18:46:53.197919Z [info     ] Successfully fetched data from eu_dem
+2025-09-21T18:46:53.198094Z [info     ] Successfully fetched real DEM data path=cache/dem/dem_7424eaf44300dbb57f34aab8ced908f4d444ec270cf4a6eb98fb6d66e8d51eef.tif resolution=25.0 source=eu_dem
+2025-09-21 13:46:53 - rasterio._env - INFO - __init__:open:356 - GDAL signalled an error: err_no=4, msg="`cache/dem/dem_7424eaf44300dbb57f34aab8ced908f4d444ec270cf4a6eb98fb6d66e8d51eef.tif' not recognized as being in a supported file format."
+2025-09-21T18:46:53.201535Z [error    ] Error validating DEM file      error="'cache/dem/dem_7424eaf44300dbb57f34aab8ced908f4d444ec270cf4a6eb98fb6d66e8d51eef.tif' not recognized as being in a supported file format." path=cache/dem/dem_7424eaf44300dbb57f34aab8ced908f4d444ec270cf4a6eb98fb6d66e8d51eef.tif
+2025-09-21T18:46:53.201638Z [error    ] Downloaded DEM file is invalid path=cache/dem/dem_7424eaf44300dbb57f34aab8ced908f4d444ec270cf4a6eb98fb6d66e8d51eef.tif source=eu_dem
+2025-09-21T18:46:53.202224Z [error    ] Hill metrics request failed    bounds={'north': 45.95, 'south': 45.88, 'east': 6.92, 'west': 6.82} error='Invalid DEM data from eu_dem' grid_size=32x32
+Traceback (most recent call last):
+  File "/Users/martin/src/skislope-kiro/agents/hill_metrics/server.py", line 109, in get_hill_metrics
+    hill_metrics = await dem_processor.process_terrain(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/martin/src/skislope-kiro/agents/hill_metrics/terrain_processor.py", line 130, in process_terrain
+    dem_path = await self._get_dem_data(bounds)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/martin/src/skislope-kiro/agents/hill_metrics/terrain_processor.py", line 270, in _get_dem_data
+    raise TerrainDataError(
+    ...<3 lines>...
+    )
+agents.hill_metrics.terrain_processor.TerrainDataError: Invalid DEM data from eu_dem

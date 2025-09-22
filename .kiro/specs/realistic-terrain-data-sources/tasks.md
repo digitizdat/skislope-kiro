@@ -17,6 +17,15 @@
   - Write integration tests for real data processing pipeline
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 6.5_
 
+- [ ] 2.1. Fix OpenTopography API integration and cache invalidation
+  - Debug why OpenTopography API is not being called despite API key availability
+  - Clear existing synthetic DEM cache files to force real data fetching
+  - Fix credential loading and environment variable access in data source manager
+  - Verify API request format and endpoint configuration for OpenTopography
+  - Add proper logging to track data source selection and API call attempts
+  - Test end-to-end real terrain data flow from API to frontend display
+  - _Requirements: 2.1, 2.2, 3.1, 3.2_
+
 - [ ] 3. Update ski area definitions with realistic boundaries
   - Expand Chamonix bounds to cover Vallée Blanche and Aiguille du Midi (10km x 8km)
   - Expand Zermatt bounds to cover Matterhorn glacier area (12km x 10km)

@@ -340,17 +340,22 @@ class DEMProcessor:
                     )
                     return False
 
-                # Check for data corruption (too many identical values)
-                unique_values = len(np.unique(valid_data))
-                total_values = len(valid_data)
+                # Enhanced elevation variation validation
+                is_valid, reason = self._validate_elevation_variation(valid_data)
 
-                if unique_values < total_values * 0.1:  # Less than 10% unique values
+                if not is_valid:
                     logger.warning(
-                        "DEM file may be corrupted (too few unique values)",
-                        unique_values=unique_values,
-                        total_values=total_values,
+                        "Elevation validation failed",
+                        reason=reason,
+                        min_elevation=min_elevation,
+                        max_elevation=max_elevation,
                     )
                     return False
+
+                # Log successful validation with detailed metrics
+                unique_values = len(np.unique(valid_data))
+                total_values = len(valid_data)
+                elevation_range = max_elevation - min_elevation
 
                 logger.info(
                     "DEM file validation passed",
@@ -358,13 +363,59 @@ class DEMProcessor:
                     crs=str(src.crs),
                     bounds=file_bounds,
                     elevation_range=(min_elevation, max_elevation),
+                    elevation_variation=elevation_range,
                     unique_values=unique_values,
+                    total_values=total_values,
+                    unique_percentage=f"{unique_values / total_values * 100:.2f}%",
+                    validation_reason=reason,
                 )
                 return True
 
         except Exception as e:
             logger.error("Error validating DEM file", path=str(dem_path), error=str(e))
             return False
+
+    def _validate_elevation_variation(self, valid_data: np.ndarray) -> tuple[bool, str]:
+        """
+        Validate elevation data using multiple quality indicators.
+
+        Args:
+            valid_data: Array of valid elevation values (no-data removed)
+
+        Returns:
+            Tuple of (is_valid, reason)
+        """
+        unique_values = len(np.unique(valid_data))
+        total_values = len(valid_data)
+        unique_percentage = unique_values / total_values * 100
+
+        min_elevation = np.min(valid_data)
+        max_elevation = np.max(valid_data)
+        elevation_range = max_elevation - min_elevation
+
+        # Reject obviously corrupted data (less than 1% unique)
+        if unique_percentage < 1.0:
+            return False, f"Too few unique values: {unique_percentage:.2f}%"
+
+        # Reject completely flat data (no elevation variation)
+        if elevation_range < 1.0:
+            return False, f"No elevation variation: {elevation_range}m range"
+
+        # Accept data with reasonable elevation range, even if low unique percentage
+        if elevation_range >= 10.0:  # At least 10m variation
+            return True, f"Valid elevation range: {elevation_range}m"
+
+        # For small elevation ranges, require higher unique percentage
+        if elevation_range >= 5.0 and unique_percentage >= 5.0:
+            return (
+                True,
+                f"Acceptable for small terrain: {elevation_range}m range, {unique_percentage:.2f}% unique",
+            )
+
+        return (
+            False,
+            f"Insufficient variation: {elevation_range}m range, {unique_percentage:.2f}% unique",
+        )
 
     def _bounds_overlap(self, file_bounds, requested_bounds: GeographicBounds) -> bool:
         """
