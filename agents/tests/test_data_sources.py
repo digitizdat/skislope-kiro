@@ -233,11 +233,12 @@ class TestEUDEMSource:
 
     def test_coverage_check_europe(self, eudem_source):
         """Test EU-DEM coverage checking for European areas."""
-        # European coverage
+        # EU-DEM is currently disabled due to API issues
+        # European coverage should return 0.0 until API is fixed
         bounds = GeographicBounds(north=50.0, south=45.0, east=10.0, west=5.0)
-        assert eudem_source.check_coverage(bounds) == 1.0
+        assert eudem_source.check_coverage(bounds) == 0.0
 
-        # No coverage (US)
+        # No coverage (US) - also 0.0 since source is disabled
         bounds = GeographicBounds(north=40.0, south=35.0, east=-100.0, west=-105.0)
         assert eudem_source.check_coverage(bounds) == 0.0
 
@@ -281,14 +282,14 @@ class TestDataSourceManager:
     @pytest.mark.asyncio
     async def test_get_best_data_source_europe(self, manager):
         """Test best source selection for European bounds."""
-        # European bounds should prefer EU-DEM over SRTM
+        # European bounds should fall back to SRTM since EU-DEM is disabled
         bounds = GeographicBounds(north=50.0, south=45.0, east=10.0, west=5.0)
 
         best_source = await manager.get_best_data_source(bounds)
 
         assert best_source is not None
-        assert best_source.name == "eu_dem"
-        assert best_source.config.priority == DataSourcePriority.REGIONAL
+        assert best_source.name == "srtm"  # Falls back to SRTM since EU-DEM is disabled
+        assert best_source.config.priority == DataSourcePriority.GLOBAL
         assert best_source.coverage_quality == 1.0
 
     @pytest.mark.asyncio
@@ -312,14 +313,16 @@ class TestDataSourceManager:
             output_path = Path(tmp_file.name)
 
         try:
-            # Mock successful fetch from EU-DEM
+            # Since EU-DEM is disabled, SRTM will be selected and should succeed
             with patch.object(
-                manager.data_sources["eu_dem"], "fetch_data", return_value=True
+                manager.data_sources["srtm"], "fetch_data", return_value=True
             ):
                 result = await manager.fetch_dem_data(bounds, output_path)
 
                 assert result is not None
-                assert result.name == "eu_dem"
+                assert (
+                    result.name == "srtm"
+                )  # SRTM is selected since EU-DEM is disabled
 
         finally:
             if output_path.exists():
@@ -421,6 +424,42 @@ class TestDataSourceIntegration:
                 if result:
                     assert output_path.exists()
                     assert output_path.stat().st_size > 0
+
+            finally:
+                if output_path.exists():
+                    output_path.unlink()
+
+    @pytest.mark.asyncio
+    async def test_chamonix_data_fetching(self):
+        """Test data fetching for Chamonix coordinates (validation fix verification)."""
+        manager = DataSourceManager()
+
+        # Use Chamonix coordinates that were failing before the validation fix
+        bounds = GeographicBounds(north=45.95, south=45.88, east=6.92, west=6.82)
+
+        # Test that we can get a data source for Chamonix
+        best_source = await manager.get_best_data_source(bounds)
+        assert best_source is not None
+        assert best_source.coverage_quality > 0.0
+
+        # Test that the source selection works correctly
+        # Should be SRTM since EU-DEM is disabled and this is not in US
+        assert best_source.name == "srtm"
+        assert best_source.config.priority == DataSourcePriority.GLOBAL
+
+        # If we have credentials, test actual data fetching
+        if manager.credential_manager.has_credential("opentopography"):
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                output_path = Path(tmp_file.name)
+
+            try:
+                result = await manager.fetch_dem_data(bounds, output_path)
+
+                if result:
+                    assert output_path.exists()
+                    assert output_path.stat().st_size > 0
+                    # The file should contain valid DEM data that would pass
+                    # the new validation logic (this is tested in terrain processor tests)
 
             finally:
                 if output_path.exists():
