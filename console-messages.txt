@@ -1,0 +1,16 @@
+Offline service destroyed OfflineService.ts:308:13
+Cache manager initialized successfully OfflineService.ts:64:15
+Offline service initialized OfflineService.ts:70:15
+Offline service initialized successfully App.tsx:34:17
+Cache manager initialized successfully OfflineService.ts:64:15
+Offline service initialized OfflineService.ts:70:15
+Offline service initialized successfully App.tsx:34:17
+Using cached runs for area copper-mountain 2 RunDatabaseService.ts:189:17
+Cached hill metrics data for area copper-mountain AgentClient.ts:138:19
+Cached terrain data for run run_1758511817866_thrhthojj with grid size 32x32 TerrainService.ts:152:17
+Cached hill metrics data for area copper-mountain AgentClient.ts:138:19
+Cached terrain data for run run_1758511817866_thrhthojj with grid size 32x32 TerrainService.ts:152:17
+Cached hill metrics data for area copper-mountain AgentClient.ts:138:19
+Cached terrain data for run run_1758511817866_thrhthojj with grid size 32x32 TerrainService.ts:152:17
+Cached hill metrics data for area copper-mountain AgentClient.ts:138:19
+Cached terrain data for run run_1758511817866_thrhthojj with grid size 32x32 TerrainService.ts:152:17

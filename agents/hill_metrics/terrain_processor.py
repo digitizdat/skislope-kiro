@@ -264,9 +264,16 @@ class DEMProcessor:
                     path=str(dem_path),
                     source=data_source_info.name,
                 )
-                # Remove invalid file
-                if dem_path.exists():
-                    dem_path.unlink()
+                # Remove invalid file (with error handling for concurrent access)
+                try:
+                    if dem_path.exists():
+                        dem_path.unlink()
+                except OSError as e:
+                    logger.warning(
+                        "Could not remove invalid DEM file (may be in use by another request)",
+                        path=str(dem_path),
+                        error=str(e),
+                    )
                 raise TerrainDataError(
                     f"Invalid DEM data from {data_source_info.name}",
                     bounds=bounds,
@@ -393,10 +400,6 @@ class DEMProcessor:
         max_elevation = np.max(valid_data)
         elevation_range = max_elevation - min_elevation
 
-        # Reject obviously corrupted data (less than 1% unique)
-        if unique_percentage < 1.0:
-            return False, f"Too few unique values: {unique_percentage:.2f}%"
-
         # Reject completely flat data (no elevation variation)
         if elevation_range < 1.0:
             return False, f"No elevation variation: {elevation_range}m range"
@@ -404,6 +407,10 @@ class DEMProcessor:
         # Accept data with reasonable elevation range, even if low unique percentage
         if elevation_range >= 10.0:  # At least 10m variation
             return True, f"Valid elevation range: {elevation_range}m"
+
+        # Reject obviously corrupted data (less than 1% unique) only for small elevation ranges
+        if unique_percentage < 1.0:
+            return False, f"Too few unique values: {unique_percentage:.2f}%"
 
         # For small elevation ranges, require higher unique percentage
         if elevation_range >= 5.0 and unique_percentage >= 5.0:

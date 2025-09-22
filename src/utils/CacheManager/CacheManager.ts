@@ -27,7 +27,7 @@ export interface CacheStats {
 export class CacheManager {
   private db: IDBDatabase | null = null;
   private dbName = 'alpine-ski-cache';
-  private dbVersion = 1;
+  private dbVersion = 2;
   private config: CacheConfig;
   private stats: CacheStats = {
     totalSize: 0,
@@ -145,25 +145,31 @@ export class CacheManager {
       return null;
     }
 
-    const key = this.generateTerrainKey(runId, gridSize);
-    const transaction = this.db.transaction(['terrain'], 'readonly');
-    const store = transaction.objectStore('terrain');
+    try {
+      const key = this.generateTerrainKey(runId, gridSize);
+      const transaction = this.db.transaction(['terrain'], 'readonly');
+      const store = transaction.objectStore('terrain');
+      
+      const result = await this.promisifyRequest(store.get(key));
     
-    const result = await this.promisifyRequest(store.get(key));
-    
-    if (!result) {
+      if (!result) {
+        this.missCount++;
+        return null;
+      }
+
+      if (this.isExpired(result)) {
+        await this.invalidateTerrainData(runId, gridSize);
+        this.missCount++;
+        return null;
+      }
+
+      this.hitCount++;
+      return result.data;
+    } catch (error) {
+      console.error('Error accessing terrain cache:', error);
       this.missCount++;
       return null;
     }
-
-    if (this.isExpired(result)) {
-      await this.invalidateTerrainData(runId, gridSize);
-      this.missCount++;
-      return null;
-    }
-
-    this.hitCount++;
-    return result.data;
   }
 
   async invalidateTerrainData(runId: string, gridSize: GridSize): Promise<void> {

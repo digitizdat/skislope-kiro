@@ -63,6 +63,15 @@ export interface HillMetrics {
   surfaceTypes: SurfaceType[][];
   safetyZones?: SafetyZone[]; // For FIS compatibility
   courseMarkers?: CourseMarker[]; // For FIS compatibility
+  metadata?: {
+    processing_time_ms?: number;
+    data_source?: string;
+    grid_size?: string;
+    bounds?: any;
+    resolution_meters?: number;
+    elevation_range?: number[];
+    [key: string]: any; // Allow additional metadata fields
+  };
 }
 
 /**

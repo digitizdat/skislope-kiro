@@ -1,0 +1,89 @@
+2025-09-22T03:42:04.622003Z [info     ] Calling method 'getHillMetrics' with params: {'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True}
+2025-09-22T03:42:04.622238Z [info     ] Creating TerrainRequest with bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6}, grid_size=32x32
+2025-09-22T03:42:04.622407Z [info     ] GeographicBounds created successfully: north=46.0 south=45.0 east=7.0 west=6.0
+2025-09-22T03:42:04.622516Z [info     ] GridSize enum created successfully: GridSize.SMALL
+2025-09-22T03:42:04.622621Z [info     ] TerrainRequest created successfully
+2025-09-22T03:42:04.623116Z [info     ] Selected best data source      coverage=1.0 priority=3 resolution=30.0 source=srtm
+2025-09-22T03:42:04.623242Z [info     ] Attempting to fetch data from srtm
+2025-09-22T03:42:04.623321Z [info     ] Loaded API key for OpenTopography
+2025-09-22T03:42:04.625447Z [info     ] Calling method 'getHillMetrics' with params: {'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True}
+2025-09-22T03:42:04.625585Z [info     ] Creating TerrainRequest with bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6}, grid_size=32x32
+2025-09-22T03:42:04.625726Z [info     ] GeographicBounds created successfully: north=46.0 south=45.0 east=7.0 west=6.0
+2025-09-22T03:42:04.625819Z [info     ] GridSize enum created successfully: GridSize.SMALL
+2025-09-22T03:42:04.625901Z [info     ] TerrainRequest created successfully
+2025-09-22T03:42:04.626417Z [info     ] Selected best data source      coverage=1.0 priority=3 resolution=30.0 source=srtm
+2025-09-22T03:42:04.626542Z [info     ] Attempting to fetch data from srtm
+2025-09-22T03:42:04.626614Z [info     ] Loaded API key for OpenTopography
+2025-09-22T03:42:04.628597Z [info     ] Calling method 'getHillMetrics' with params: {'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True}
+2025-09-22T03:42:04.628720Z [info     ] Creating TerrainRequest with bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6}, grid_size=32x32
+2025-09-22T03:42:04.628809Z [info     ] GeographicBounds created successfully: north=46.0 south=45.0 east=7.0 west=6.0
+2025-09-22T03:42:04.628869Z [info     ] GridSize enum created successfully: GridSize.SMALL
+2025-09-22T03:42:04.628934Z [info     ] TerrainRequest created successfully
+2025-09-22T03:42:04.629206Z [info     ] Selected best data source      coverage=1.0 priority=3 resolution=30.0 source=srtm
+2025-09-22T03:42:04.629292Z [info     ] Attempting to fetch data from srtm
+2025-09-22T03:42:04.629355Z [info     ] Loaded API key for OpenTopography
+2025-09-22T03:42:04.630264Z [info     ] Calling method 'getHillMetrics' with params: {'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True}
+2025-09-22T03:42:04.630338Z [info     ] Creating TerrainRequest with bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6}, grid_size=32x32
+2025-09-22T03:42:04.630408Z [info     ] GeographicBounds created successfully: north=46.0 south=45.0 east=7.0 west=6.0
+2025-09-22T03:42:04.630458Z [info     ] GridSize enum created successfully: GridSize.SMALL
+2025-09-22T03:42:04.630506Z [info     ] TerrainRequest created successfully
+2025-09-22T03:42:04.630744Z [info     ] Selected best data source      coverage=1.0 priority=3 resolution=30.0 source=srtm
+2025-09-22T03:42:04.630829Z [info     ] Attempting to fetch data from srtm
+2025-09-22T03:42:04.630873Z [info     ] Loaded API key for OpenTopography
+2025-09-22T03:42:17.028318Z [info     ] Successfully fetched SRTM data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} output_path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:17.029189Z [info     ] Successfully fetched data from srtm
+2025-09-22T03:42:17.029260Z [info     ] Successfully fetched real DEM data path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif resolution=30.0 source=srtm
+2025-09-22T03:42:17.224465Z [info     ] DEM file validation passed     bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) crs=EPSG:4326 elevation_range=(np.int16(232), np.int16(4797)) elevation_variation=np.int16(4565) path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif total_values=12960000 unique_percentage=0.04% unique_values=4551 validation_reason='Valid elevation range: 4565m'
+2025-09-22T03:42:17.225958Z [info     ] Detected DEM format: .tif      path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:17.226375Z [info     ] Processing DEM file            format=.tif path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif source_bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) source_crs=EPSG:4326 source_shape=(3600, 3600)
+2025-09-22T03:42:17.483871Z [info     ] Successfully extracted elevation data elevation_range=(np.float32(263.17975), np.float32(3818.9358)) grid_shape=(32, 32) no_data_value=-32768.0 resolution_meters=2950.0145052700536
+2025-09-22T03:42:17.485398Z [info     ] Successfully processed terrain data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} data_source=srtm elevation_range=[263.17974853515625, 3818.935791015625] grid_size=32x32 processing_time_ms=12859.408855438232 resolution_meters=2950.0145052700536
+2025-09-22T03:42:17.485514Z [info     ] Hill metrics request completed bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6} grid_size=32x32 processing_time_ms=12859.876155853271
+2025-09-22T03:42:17.485599Z [info     ] Method 'getHillMetrics' returned: <class 'dict'>
+2025-09-22T03:42:17.486810Z [info     ] JSON-RPC request completed     correlation_id=4891735a-8eff-41ae-98de-63d997e0a17e duration_ms=12860.324144363403 method=getHillMetrics params={'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True} response_size=97285 success=True
+2025-09-22T03:42:17.493506Z [info     ] Successfully fetched SRTM data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} output_path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:17.495213Z [info     ] Successfully fetched data from srtm
+2025-09-22T03:42:17.495254Z [info     ] Successfully fetched real DEM data path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif resolution=30.0 source=srtm
+2025-09-22T03:42:17.662971Z [info     ] DEM file validation passed     bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) crs=EPSG:4326 elevation_range=(np.int16(232), np.int16(4797)) elevation_variation=np.int16(4565) path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif total_values=12960000 unique_percentage=0.04% unique_values=4551 validation_reason='Valid elevation range: 4565m'
+2025-09-22T03:42:17.665608Z [info     ] Detected DEM format: .tif      path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:17.666156Z [info     ] Processing DEM file            format=.tif path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif source_bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) source_crs=EPSG:4326 source_shape=(3600, 3600)
+2025-09-22T03:42:17.909664Z [info     ] Successfully extracted elevation data elevation_range=(np.float32(263.17975), np.float32(3818.9358)) grid_shape=(32, 32) no_data_value=-32768.0 resolution_meters=2950.0145052700536
+2025-09-22T03:42:17.911155Z [info     ] Successfully processed terrain data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} data_source=srtm elevation_range=[263.17974853515625, 3818.935791015625] grid_size=32x32 processing_time_ms=13288.470983505249 resolution_meters=2950.0145052700536
+2025-09-22T03:42:17.911223Z [info     ] Hill metrics request completed bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6} grid_size=32x32 processing_time_ms=13288.980960845947
+2025-09-22T03:42:17.911305Z [info     ] Method 'getHillMetrics' returned: <class 'dict'>
+2025-09-22T03:42:17.912436Z [info     ] JSON-RPC request completed     correlation_id=d1880e76-673b-4ecc-a1f4-3808f557e9a5 duration_ms=13289.710760116577 method=getHillMetrics params={'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True} response_size=97283 success=True
+2025-09-22T03:42:17.916201Z [info     ] Successfully fetched SRTM data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} output_path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:17.916918Z [info     ] Successfully fetched data from srtm
+2025-09-22T03:42:17.916938Z [info     ] Successfully fetched real DEM data path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif resolution=30.0 source=srtm
+2025-09-22T03:42:18.081891Z [info     ] DEM file validation passed     bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) crs=EPSG:4326 elevation_range=(np.int16(232), np.int16(4797)) elevation_variation=np.int16(4565) path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif total_values=12960000 unique_percentage=0.04% unique_values=4551 validation_reason='Valid elevation range: 4565m'
+2025-09-22T03:42:18.083752Z [info     ] Detected DEM format: .tif      path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:18.084320Z [info     ] Processing DEM file            format=.tif path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif source_bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) source_crs=EPSG:4326 source_shape=(3600, 3600)
+2025-09-22T03:42:18.326862Z [info     ] Successfully extracted elevation data elevation_range=(np.float32(263.17975), np.float32(3818.9358)) grid_shape=(32, 32) no_data_value=-32768.0 resolution_meters=2950.0145052700536
+2025-09-22T03:42:18.328720Z [info     ] Successfully processed terrain data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} data_source=srtm elevation_range=[263.17974853515625, 3818.935791015625] grid_size=32x32 processing_time_ms=13699.746131896973 resolution_meters=2950.0145052700536
+2025-09-22T03:42:18.328787Z [info     ] Hill metrics request completed bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6} grid_size=32x32 processing_time_ms=13700.05202293396
+2025-09-22T03:42:18.328863Z [info     ] Method 'getHillMetrics' returned: <class 'dict'>
+2025-09-22T03:42:18.330453Z [info     ] JSON-RPC request completed     correlation_id=fa1644f1-3d08-43af-89f6-44fc6d3875b8 duration_ms=13700.436115264893 method=getHillMetrics params={'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True} response_size=97284 success=True
+2025-09-22T03:42:18.336017Z [info     ] Successfully fetched SRTM data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} output_path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:18.336679Z [info     ] Successfully fetched data from srtm
+2025-09-22T03:42:18.336708Z [info     ] Successfully fetched real DEM data path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif resolution=30.0 source=srtm
+2025-09-22T03:42:18.499301Z [info     ] DEM file validation passed     bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) crs=EPSG:4326 elevation_range=(np.int16(232), np.int16(4797)) elevation_variation=np.int16(4565) path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif total_values=12960000 unique_percentage=0.04% unique_values=4551 validation_reason='Valid elevation range: 4565m'
+2025-09-22T03:42:18.501382Z [info     ] Detected DEM format: .tif      path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif
+2025-09-22T03:42:18.501983Z [info     ] Processing DEM file            format=.tif path=cache/dem/dem_eda07dc7e0a0335e9bdb0a714df40c27727067baa5f04f7bd8acd69279d48b8a.tif source_bounds=BoundingBox(left=5.999861111135743, bottom=45.0001388888869, right=6.999861111135876, top=46.00013888888704) source_crs=EPSG:4326 source_shape=(3600, 3600)
+2025-09-22T03:42:18.740633Z [info     ] Successfully extracted elevation data elevation_range=(np.float32(263.17975), np.float32(3818.9358)) grid_shape=(32, 32) no_data_value=-32768.0 resolution_meters=2950.0145052700536
+2025-09-22T03:42:18.742288Z [info     ] Successfully processed terrain data bounds={'north': 46.0, 'south': 45.0, 'east': 7.0, 'west': 6.0} data_source=srtm elevation_range=[263.17974853515625, 3818.935791015625] grid_size=32x32 processing_time_ms=14111.742973327637 resolution_meters=2950.0145052700536
+2025-09-22T03:42:18.742387Z [info     ] Hill metrics request completed bounds={'north': 46, 'south': 45, 'east': 7, 'west': 6} grid_size=32x32 processing_time_ms=14112.015008926392
+2025-09-22T03:42:18.742474Z [info     ] Method 'getHillMetrics' returned: <class 'dict'>
+2025-09-22T03:42:18.744168Z [info     ] JSON-RPC request completed     correlation_id=dcec48b3-2c0d-4ab4-a60e-6274da96b6c2 duration_ms=14112.340927124023 method=getHillMetrics params={'bounds': {'north': 46, 'south': 45, 'east': 7, 'west': 6}, 'grid_size': '32x32', 'include_surface_classification': True} response_size=97284 success=True
+2025-09-22T03:42:20.050075Z [info     ] Performance metric             metric=cpu_usage_percent tags={'agent': 'hill_metrics'} unit=percent value=18.6
+2025-09-22T03:42:20.050220Z [info     ] Performance metric             metric=memory_usage_percent tags={'agent': 'hill_metrics'} unit=percent value=56.6
+2025-09-22T03:42:20.050263Z [info     ] Performance metric             metric=disk_usage_percent tags={'agent': 'hill_metrics'} unit=percent value=30.1
+2025-09-22T03:42:20.050296Z [info     ] Performance metric             metric=uptime_seconds tags={'agent': 'hill_metrics'} unit=seconds value=30.00274133682251
+2025-09-22T03:42:20.050328Z [info     ] Performance metric             metric=total_requests tags={'agent': 'hill_metrics'} unit=count value=4
+2025-09-22T03:42:20.050361Z [info     ] Performance metric             metric=error_rate tags={'agent': 'hill_metrics'} unit=ratio value=0.0
+2025-09-22T03:42:21.968698Z [info     ] Performance metric             metric=cpu_usage_percent tags={'agent': 'weather'} unit=percent value=18.5
+2025-09-22T03:42:21.969061Z [info     ] Performance metric             metric=memory_usage_percent tags={'agent': 'weather'} unit=percent value=56.9
+2025-09-22T03:42:21.969219Z [info     ] Performance metric             metric=disk_usage_percent tags={'agent': 'weather'} unit=percent value=30.1
+2025-09-22T03:42:21.969340Z [info     ] Performance metric             metric=uptime_seconds tags={'agent': 'weather'} unit=seconds value=30.003663063049316
+2025-09-22T03:42:21.969456Z [info     ] Performance metric             metric=total_requests tags={'agent': 'weather'} unit=count value=0
+2025-09-22T03:42:21.969572Z [info     ] Performance metric             metric=error_rate tags={'agent': 'weather'} unit=ratio value=0.0
+

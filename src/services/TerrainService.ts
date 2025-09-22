@@ -85,7 +85,7 @@ export class TerrainService implements TerrainServiceInterface {
    */
   async extractTerrainData(run: SkiRun, gridSize: GridSize): Promise<TerrainData> {
     try {
-      // Check cache first
+      // Check cache first - only real data should be cached
       const cachedData = await cacheManager.getCachedTerrainData(run.id, gridSize);
       if (cachedData) {
         console.log(`Using cached terrain data for run ${run.id} with grid size ${gridSize}`);
@@ -146,13 +146,18 @@ export class TerrainService implements TerrainServiceInterface {
         hillMetrics
       };
 
-      // Cache the terrain data
-      try {
-        await cacheManager.cacheTerrainData(terrainData, run, gridSize);
-        console.log(`Cached terrain data for run ${run.id} with grid size ${gridSize}`);
-      } catch (cacheError) {
-        console.warn('Failed to cache terrain data:', cacheError);
-        // Continue without caching - don't fail the entire operation
+      // Only cache real terrain data - synthetic data is fast to regenerate
+      if (this.isRealTerrainData(terrainData)) {
+        try {
+          await cacheManager.cacheTerrainData(terrainData, run, gridSize);
+          const dataSource = (terrainData.hillMetrics.metadata as any)?.data_source;
+          console.log(`Cached real terrain data for run ${run.id} with grid size ${gridSize} (source: ${dataSource})`);
+        } catch (cacheError) {
+          console.warn('Failed to cache terrain data:', cacheError);
+          // Continue without caching - don't fail the entire operation
+        }
+      } else {
+        console.log(`Not caching synthetic terrain data for run ${run.id} - will fetch real data on next request`);
       }
 
       return terrainData;
@@ -800,6 +805,40 @@ export class TerrainService implements TerrainServiceInterface {
       size: this.meshCache.size,
       keys: Array.from(this.meshCache.keys())
     };
+  }
+
+  /**
+   * Force refresh terrain data by clearing cache and fetching new data
+   * Useful for debugging or when you want to force re-fetch from agents
+   */
+  async refreshTerrainData(run: SkiRun, gridSize: GridSize): Promise<TerrainData> {
+    console.log(`Force refreshing terrain data for run ${run.id} with grid size ${gridSize}`);
+    
+    // Clear cached data
+    try {
+      await cacheManager.invalidateTerrainData(run.id, gridSize);
+    } catch (error) {
+      console.warn('Failed to invalidate cache during refresh:', error);
+    }
+    
+    // Fetch fresh data
+    return this.extractTerrainData(run, gridSize);
+  }
+
+  /**
+   * Check if terrain data is from real DEM sources vs synthetic generation
+   * Real data will have a data_source in hillMetrics.metadata indicating the source (e.g., "srtm")
+   */
+  private isRealTerrainData(terrainData: TerrainData): boolean {
+    const dataSource = terrainData.hillMetrics?.metadata?.data_source;
+    
+    if (!dataSource || typeof dataSource !== 'string') {
+      return false;
+    }
+    
+    // Real data sources from the backend agents
+    const realDataSources = ['srtm', 'usgs_3dep', 'eu_dem', 'swisstopo', 'ign_france'];
+    return realDataSources.includes(dataSource.toLowerCase());
   }
 }
 

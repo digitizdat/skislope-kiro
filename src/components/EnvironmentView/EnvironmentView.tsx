@@ -129,6 +129,36 @@ const EnvironmentView: FC<EnvironmentViewProps> = ({
     }
   };
 
+  const refreshTerrainData = async () => {
+    if (!threeSetupRef.current) return;
+    
+    setIsLoadingTerrain(true);
+    setTerrainError(null);
+    setLoadingProgress(0);
+    
+    try {
+      console.log('🔄 Force refreshing terrain data...');
+      
+      // Use the refresh method to clear cache and fetch new data
+      const terrainData = await terrainService.refreshTerrainData(selectedRun, selectedGridSize);
+      
+      // Generate new mesh
+      const terrainMesh = terrainService.generateMesh(terrainData);
+      
+      // Update the 3D scene by removing old terrain and adding new
+      threeSetupRef.current.removeTerrainMesh();
+      threeSetupRef.current.addTerrainMesh(terrainMesh);
+      
+      console.log('✅ Terrain refresh completed successfully');
+    } catch (error) {
+      console.error('❌ Failed to refresh terrain:', error);
+      setTerrainError(`Failed to refresh terrain: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsLoadingTerrain(false);
+      setLoadingProgress(100);
+    }
+  };
+
   return (
     <div className="environment-view">
       <header className="environment-header">
@@ -272,6 +302,20 @@ const EnvironmentView: FC<EnvironmentViewProps> = ({
                 <span className="info-label">Vertical Drop:</span>
                 <span className="info-value">{Math.round(selectedRun.statistics.verticalDrop)} m</span>
               </div>
+            </div>
+          </div>
+
+          <div className="control-group">
+            <h3>Debug Tools</h3>
+            <div className="button-group">
+              <button 
+                className="control-button"
+                onClick={refreshTerrainData}
+                disabled={isLoadingTerrain}
+                title="Force refresh terrain data (clears cache and fetches new data)"
+              >
+                🔄 Refresh Terrain
+              </button>
             </div>
           </div>
 
